@@ -1276,3 +1276,164 @@ body {
 }
 
 }
+/* ============================================= */
+/* == CSS TÍCH HỢP SIDEBAR & MODULE LAYOUT == */
+/* ============================================= */
+
+/* --- Bố cục chung --- */
+/* Sử dụng Flexbox cho container chính để xếp sidebar và nội dung */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- Định dạng Sidebar --- */
+.app-sidebar {
+    width: 240px; /* Có thể điều chỉnh chiều rộng */
+    flex-shrink: 0; /* Không co lại */
+    background-color: var(--card-bg-color); /* Nền giống thẻ note hoặc nền body */
+    border-right: 1px solid var(--border-color);
+    padding: 15px 10px; /* Padding bên trong sidebar */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05); /* Đổ bóng nhẹ cho sidebar */
+    z-index: 10; /* Đảm bảo nằm trên nếu có nội dung cuộn */
+    /* Nếu muốn sidebar cố định khi cuộn: */
+    /* position: fixed;
+       height: 100vh;
+       top: 0;
+       left: 0; */
+}
+
+.sidebar-header {
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--primary-color); /* Màu tiêu đề giống màu nhấn */
+}
+
+.sidebar-nav {
+    flex-grow: 1; /* Cho phép nav chiếm không gian còn lại */
+    overflow-y: auto; /* Cho phép cuộn nếu nhiều mục */
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav-button {
+    display: flex; /* Sử dụng flex để căn icon và text */
+    align-items: center;
+    gap: 10px; /* Khoảng cách giữa icon và text */
+    width: 100%;
+    padding: 11px 15px; /* Tăng padding cho dễ bấm */
+    margin-bottom: 5px; /* Giảm khoảng cách giữa các nút */
+    border: none;
+    background-color: transparent;
+    color: var(--text-color);
+    text-align: left;
+    font-size: 0.95em;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.1s;
+}
+
+.sidebar-nav-button:hover {
+    background-color: var(--setting-option-hover-bg); /* Dùng màu hover từ theme */
+    color: var(--primary-color);
+}
+
+.sidebar-nav-button.active {
+    background-color: var(--primary-color);
+    color: var(--primary-text-color);
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ cho nút active */
+}
+
+/* Style icon bên trong nút (nếu bạn dùng emoji hoặc span/i) */
+.sidebar-nav-button svg,
+.sidebar-nav-button span:first-child { /* Giả sử icon là span đầu tiên hoặc svg */
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0.8;
+    margin-right: 5px; /* Thêm khoảng cách nhẹ nếu cần */
+}
+.sidebar-nav-button.active svg,
+.sidebar-nav-button.active span:first-child {
+     opacity: 1;
+     /* Có thể đổi màu icon nếu cần: */
+     /* color: var(--primary-text-color); */
+}
+
+
+.sidebar-footer {
+    margin-top: auto; /* Đẩy footer xuống dưới */
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+    /* Style thêm cho footer nếu cần */
+}
+
+
+/* --- Định dạng Khu vực Nội dung Chính --- */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-color); /* Nền chính của ứng dụng */
+    /* Nếu sidebar fixed, cần thêm: */
+    /* margin-left: 240px; */ /* Bằng chiều rộng sidebar + khoảng cách nếu có */
+    /* overflow-y: auto; */ /* Cho phép cuộn nội dung chính */
+    /* height: 100vh; */ /* Chiều cao bằng viewport */
+}
+
+/* Đảm bảo header, main, footer trong main-content co giãn đúng */
+.main-content > .app-header {
+    flex-shrink: 0; /* Không co header */
+    position: sticky; /* Làm header dính lại khi cuộn (tuỳ chọn) */
+    top: 0;
+    z-index: 5; /* Nằm trên nội dung cuộn */
+    background-color: var(--card-bg-color); /* Nền cho header dính */
+    box-shadow: 0 1px 3px var(--shadow-color); /* Đổ bóng cho header dính */
+    /* Điều chỉnh lại padding/margin của header nếu cần */
+    /* padding-left: 20px; padding-right: 20px; */
+}
+
+.main-content > main {
+    flex-grow: 1;
+    padding: 20px; /* Padding cho nội dung bên trong thẻ main */
+}
+
+.main-content > footer {
+    flex-shrink: 0;
+    padding: 15px 20px;
+    text-align: center;
+    font-size: 0.85em;
+    color: var(--secondary-color);
+    background-color: var(--bg-color); /* Nền footer */
+    border-top: 1px solid var(--border-color);
+}
+
+/* --- Các class tiện ích --- */
+.hidden {
+    display: none !important;
+}
+
+/* Style cơ bản cho container module (để thấy được khi chuyển đổi) */
+.app-module-container {
+    /* Bạn có thể giữ lại style từ App 2 hoặc định nghĩa lại ở đây */
+    background-color: var(--card-bg-color); /* Nền giống thẻ note */
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    /* Thêm các style khác nếu muốn */
+}
