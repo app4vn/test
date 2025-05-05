@@ -3,54 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlexiNote - Integrated</title> {/* Đổi title nếu muốn */}
+    <title>FlexiNote - Integrated</title>
 
-    {/* Thư viện SortableJS cho kéo thả ghi chú */}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
-    {/* Google Fonts (Giữ nguyên từ FlexiNote) */}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Noto+Sans:wght@400;700&family=Open+Sans:wght@400;700&family=Roboto:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
 
-    {/* Link đến file CSS của FlexiNote */}
     <link rel="stylesheet" href="style.css">
-
-    {/* KHÔNG THÊM Tailwind CDN ở đây trừ khi bạn chọn chiến lược tích hợp Tailwind */}
 
 </head>
 <body>
 
-    <div class="app-container"> {/* Container chính bao bọc Sidebar và Nội dung */}
+    <div class="app-container">
 
         <aside id="app-sidebar" class="app-sidebar">
-            <div class="sidebar-header"> {/* Optional: Tiêu đề hoặc logo cho sidebar */}
+            <div class="sidebar-header">
                 <h2>Modules</h2>
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    {/* Thêm class 'active' cho module hiện tại (mặc định là notes) */}
                     <li><button class="sidebar-nav-button active" data-module="notes">📝 Ghi chú</button></li>
                     <li><button class="sidebar-nav-button" data-module="goals">🎯 Mục tiêu</button></li>
                     <li><button class="sidebar-nav-button" data-module="habits">🔄 Thói quen</button></li>
                     <li><button class="sidebar-nav-button" data-module="skills">💡 Kỹ năng</button></li>
                     <li><button class="sidebar-nav-button" data-module="time">⏱️ Thời gian</button></li>
-                    {/* Có thể chuyển nút Cài đặt vào đây nếu muốn */}
-                    {/* <li><button class="sidebar-nav-button" data-module="settings">⚙️ Cài đặt</button></li> */}
                 </ul>
             </nav>
-             <div class="sidebar-footer"> {/* Optional: Footer cho sidebar */}
-                {/* Có thể đặt nút Xuất/Nhập ở đây */}
+             <div class="sidebar-footer">
             </div>
         </aside>
 
-        <div id="app-main-content" class="main-content"> {/* Khu vực nội dung chính */}
+        <div id="app-main-content" class="main-content">
 
-            {/* Header gốc của FlexiNote - Giữ lại hoặc điều chỉnh */}
             <header class="app-header">
-                <h1>FlexiNote 4 Everything</h1> {/* Hoặc tên mới */}
+                <h1>FlexiNote 4 Everything</h1>
                 <div class="header-actions">
-                    {/* Giữ lại các nút liên quan đến Notes hoặc chức năng toàn cục */}
                     <button id="manage-notebooks-btn" title="Quản lý các sổ tay">Quản lý Sổ tay</button>
                     <button id="manage-templates-btn" title="Quản lý các mẫu ghi chú">Quản lý Mẫu</button>
                     <button id="view-archive-btn" title="Xem các ghi chú đã lưu trữ">Xem Lưu trữ</button>
@@ -67,10 +56,8 @@
             </header>
 
             <main>
-                {/* MODULE: Ghi chú (Notes) - Hiển thị mặc định */}
                 <div id="notes-module">
                     <div id="notebook-tabs-container" class="notebook-tabs">
-                        {/* Tabs sổ tay sẽ được JS render vào đây */}
                         <button class="tab-button active" data-notebook-id="all">Tất cả Ghi chú</button>
                         <button id="add-notebook-tab-btn" class="add-tab-button" title="Thêm Sổ tay mới">+</button>
                     </div>
@@ -95,87 +82,140 @@
                     </div>
 
                     <div id="notes-container">
-                        {/* Các thẻ ghi chú sẽ được JS render vào đây */}
                     </div>
 
                     <button id="show-add-panel-btn" class="fab" title="Thêm ghi chú mới">+</button>
                 </div>
 
-                {/* MODULE: Mục tiêu (Goals) - Ẩn ban đầu */}
                 <div id="goals-module" class="app-module-container hidden">
-                    {/* Nội dung module Mục tiêu sẽ được goals.js tạo và chèn vào đây */}
-                    <p>Đang tải Mục tiêu...</p>
+                     <p>Đang tải Mục tiêu...</p>
                 </div>
 
-                {/* MODULE: Thói quen (Habits) - Ẩn ban đầu */}
                 <div id="habits-module" class="app-module-container hidden">
-                    {/* Nội dung module Thói quen sẽ được habits.js tạo và chèn vào đây */}
                      <p>Đang tải Thói quen...</p>
                 </div>
 
-                {/* MODULE: Kỹ năng (Skills) - Ẩn ban đầu */}
                 <div id="skills-module" class="app-module-container hidden">
-                    {/* Nội dung module Kỹ năng sẽ được skills.js tạo và chèn vào đây */}
                      <p>Đang tải Kỹ năng...</p>
                 </div>
 
-                {/* MODULE: Thời gian (Time/ToDo) - Ẩn ban đầu */}
                 <div id="time-module" class="app-module-container hidden">
-                    {/* Nội dung module Thời gian sẽ được time.js tạo và chèn vào đây */}
                      <p>Đang tải Thời gian...</p>
                 </div>
             </main>
 
-             {/* Footer gốc của FlexiNote hoặc footer mới nếu muốn */}
             <footer class="text-center text-gray-500 mt-8 p-4" style="color: var(--secondary-color); font-size: 0.9em;">
                  <p>&copy; 2025 - FlexiNote Integrated</p>
             </footer>
 
-        </div> {/* Kết thúc #app-main-content */}
+        </div>
 
-    </div> {/* Kết thúc .app-container */}
+    </div>
 
-    {/* === MODALS === */}
-    {/* Modal Quản lý Sổ tay (Từ FlexiNote) */}
     <div id="notebook-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="notebook-modal-title">
-        {/* Nội dung modal sổ tay giữ nguyên */}
-        <div class="modal-content notebook-modal-content">...</div>
+        <div class="modal-content notebook-modal-content">
+            {/* Nội dung modal sổ tay giữ nguyên từ FlexiNote gốc */}
+             <div class="modal-header">
+                 <h2 id="notebook-modal-title">Quản lý Sổ tay</h2>
+                 <button id="close-notebook-modal-btn" class="close-modal-btn" title="Đóng (Esc)" aria-label="Đóng cửa sổ quản lý sổ tay">&times;</button>
+             </div>
+             <div class="modal-body">
+                 <div id="notebook-list-section">
+                     <h3>Danh sách Sổ tay</h3>
+                     <div id="notebook-list-container">
+                         <p class="empty-state">Chưa có sổ tay nào.</p>
+                     </div>
+                     <button id="show-add-notebook-panel-btn" class="modal-button primary">Tạo Sổ tay Mới</button>
+                 </div>
+                 <div id="notebook-edit-panel" class="hidden">
+                     <h3 id="notebook-edit-title">Tạo Sổ tay Mới</h3>
+                     <input type="hidden" id="notebook-edit-id">
+                     <div class="form-group">
+                         <label for="notebook-edit-name">Tên Sổ tay (bắt buộc):</label>
+                         <input type="text" id="notebook-edit-name" placeholder="Ví dụ: Công việc, Cá nhân...">
+                     </div>
+                     <div class="panel-actions">
+                         <button id="save-notebook-btn" class="modal-button primary">Lưu Sổ tay</button>
+                         <button id="cancel-edit-notebook-btn" class="modal-button secondary">Hủy</button>
+                     </div>
+                 </div>
+             </div>
+        </div>
     </div>
 
-    {/* Modal Quản lý Mẫu (Từ FlexiNote) */}
     <div id="template-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="template-modal-title">
-        {/* Nội dung modal mẫu giữ nguyên */}
-         <div class="modal-content template-modal-content">...</div>
+         <div class="modal-content template-modal-content">
+            {/* Nội dung modal mẫu giữ nguyên từ FlexiNote gốc */}
+             <div class="modal-header">
+                 <h2 id="template-modal-title">Quản lý Mẫu Ghi Chú</h2>
+                 <button id="close-template-modal-btn" class="close-modal-btn" title="Đóng (Esc)" aria-label="Đóng cửa sổ quản lý mẫu">&times;</button>
+             </div>
+             <div class="modal-body">
+                 <div id="template-list-section">
+                     <h3>Danh sách Mẫu</h3>
+                     <div id="template-list-container">
+                         <p class="empty-state">Chưa có mẫu nào.</p>
+                     </div>
+                     <button id="show-add-template-panel-btn" class="modal-button primary">Tạo Mẫu Mới</button>
+                 </div>
+                 <div id="template-edit-panel" class="hidden">
+                     <h3 id="template-edit-title">Tạo Mẫu Mới</h3>
+                     <input type="hidden" id="template-edit-id">
+                     <div class="form-group">
+                         <label for="template-edit-name">Tên Mẫu (bắt buộc):</label>
+                         <input type="text" id="template-edit-name" placeholder="Ví dụ: Họp hàng tuần, Ý tưởng Blog...">
+                     </div>
+                     <div class="form-group">
+                         <label for="template-edit-title-input">Tiêu đề Mẫu:</label>
+                         <input type="text" id="template-edit-title-input" placeholder="Tiêu đề mặc định...">
+                     </div>
+                     <div class="form-group">
+                         <label for="template-edit-text">Nội dung Mẫu:</label>
+                         <textarea id="template-edit-text" placeholder="Nội dung mặc định..."></textarea>
+                     </div>
+                     <div class="form-group">
+                         <label for="template-edit-tags">Tags Mẫu:</label>
+                         <input type="text" id="template-edit-tags" placeholder="Tags mặc định (cách nhau bằng dấu phẩy)...">
+                     </div>
+                     <div class="panel-actions">
+                         <button id="save-template-btn" class="modal-button primary">Lưu Mẫu</button>
+                         <button id="cancel-edit-template-btn" class="modal-button secondary">Hủy</button>
+                     </div>
+                 </div>
+             </div>
+        </div>
     </div>
 
-    {/* Modal Cài đặt Giao diện (Từ FlexiNote) */}
     <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
-        {/* Nội dung modal cài đặt giữ nguyên */}
-         <div class="modal-content settings-modal-content">...</div>
+         <div class="modal-content settings-modal-content">
+            {/* Nội dung modal cài đặt giữ nguyên từ FlexiNote gốc */}
+            <div class="modal-header">
+                 <h2 id="settings-modal-title">Tùy chỉnh Giao diện</h2>
+                 <button id="close-settings-modal-btn" class="close-modal-btn" title="Đóng (Esc)" aria-label="Đóng cửa sổ cài đặt">&times;</button>
+             </div>
+             <div class="modal-body">
+                {/* ... Các phần cài đặt theme, màu, font ... */}
+             </div>
+        </div>
     </div>
 
-    {/* Modal Lịch sử Thói quen (Từ App 2) */}
-    <div id="habit-history-modal" class="modal-overlay hidden"> {/* Sử dụng class từ App 2 hoặc định nghĩa lại */}
-        <div class="modal-content"> {/* Style lại class này theo FlexiNote nếu cần */}
-            <div class="flex justify-between items-center mb-4"> {/* Dùng class Tailwind hoặc viết lại */}
+    <div id="habit-history-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
                 <h3 id="modal-habit-name" class="text-lg font-semibold">Lịch sử Thói quen</h3>
-                <button id="close-history-modal-btn" class="close-modal-btn">&times;</button> {/* Dùng class của FlexiNote */}
+                <button id="close-history-modal-btn" class="close-modal-btn">&times;</button>
             </div>
             <div class="flex justify-between items-center mb-3">
-                <button id="prev-month-btn" class="modal-button secondary small-button">&lt; Trước</button> {/* Style lại nút */}
+                <button id="prev-month-btn" class="modal-button secondary small-button">&lt; Trước</button>
                 <span id="current-month-year" class="font-semibold">Tháng Năm 2025</span>
-                <button id="next-month-btn" class="modal-button secondary small-button">Sau &gt;</button> {/* Style lại nút */}
+                <button id="next-month-btn" class="modal-button secondary small-button">Sau &gt;</button>
             </div>
             <div id="calendar-grid-container" class="calendar-grid">
-                {/* Lịch sẽ được JS render vào đây */}
             </div>
         </div>
     </div>
 
-    {/* === SCRIPTS === */}
-    {/* Script chính của FlexiNote */}
     <script src="script.js" defer></script>
-    {/* Các script mới cho từng module */}
     <script src="goals.js" defer></script>
     <script src="habits.js" defer></script>
     <script src="skills.js" defer></script>
