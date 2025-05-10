@@ -1,6 +1,7 @@
 // firebaseService.js
 
 // Import các hàm cần thiết từ Firebase SDK
+// Đây là những hàm bạn sẽ gọi trực tiếp từ các module khác thông qua export của file này.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
     getAuth,
@@ -25,10 +26,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Cấu hình Firebase của bạn ---
-// Bạn nên giữ API key và các thông tin cấu hình này ở một nơi an toàn
-// và không commit trực tiếp lên public repository nếu có thể.
-// Trong thực tế, với ứng dụng client-side, API key là có thể thấy được,
-// bảo mật chủ yếu dựa vào Firebase Security Rules.
+// QUAN TRỌNG: Giữ API key và các thông tin cấu hình này cẩn thận.
+// Mặc dù API key phía client là có thể thấy được, bảo mật chính của ứng dụng Firebase
+// nằm ở Firebase Security Rules (quy tắc bảo mật Firestore, Storage, v.v.).
 const firebaseConfig = {
     apiKey: "AIzaSyAe5UOFul4ce8vQN66Bpcktj4oiV19ht-I", // API key của bạn
     authDomain: "ghichu-198277.firebaseapp.com",
@@ -39,21 +39,33 @@ const firebaseConfig = {
 };
 
 // --- Khởi tạo Firebase ---
+// Khởi tạo Firebase app một lần duy nhất.
 const app = initializeApp(firebaseConfig);
+
+// Lấy các instance của dịch vụ Firebase.
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- Export các instance và hàm của Firebase để các module khác có thể sử dụng ---
+// --- Export các instance và hàm của Firebase ---
+// Các module khác trong ứng dụng của bạn sẽ import những thứ này.
 export {
-    app, // Ít khi cần export 'app' trực tiếp, nhưng có thể hữu ích trong một số trường hợp
-    auth,
-    db,
-    // Auth functions
+    // Firebase app instance (ít khi cần dùng trực tiếp ở module khác, nhưng có thể export nếu cần)
+    // app, 
+    
+    // Dịch vụ Authentication
+    auth, 
+    // Dịch vụ Firestore
+    db,   
+    // Đối tượng Timestamp của Firestore
+    Timestamp, 
+
+    // Các hàm tiện ích từ Firebase Auth SDK
     onAuthStateChanged,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    // Firestore functions
+
+    // Các hàm tiện ích từ Firebase Firestore SDK
     collection,
     addDoc,
     query,
@@ -63,8 +75,8 @@ export {
     doc,
     getDoc,
     updateDoc,
-    deleteDoc,
-    Timestamp
+    deleteDoc
 };
 
-console.log("Firebase service initialized and configured.");
+// Log để xác nhận module đã được tải và Firebase đã được cấu hình (hữu ích khi debug)
+console.log("Firebase service (firebaseService.js) initialized and configured.");
