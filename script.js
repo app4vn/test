@@ -1,29 +1,23 @@
-// script.js (Sau Bước 1 - Làm lại, đã tách firebaseService.js)
+// script.js (Sau Bước 2 - Tách utils.js)
 
-// Import các instance và hàm cần thiết từ firebaseService.js
-// Đường dẫn './firebaseService.js' giả định file này nằm cùng cấp với script.js
+// Import các instance và hàm từ firebaseService.js
 import {
-    auth,               // Instance của Firebase Auth
-    db,                 // Instance của Firestore
-    Timestamp,          // Đối tượng Timestamp của Firestore
-    onAuthStateChanged, // Hàm theo dõi trạng thái đăng nhập
-    createUserWithEmailAndPassword, // Hàm tạo người dùng mới
-    signInWithEmailAndPassword,   // Hàm đăng nhập
-    signOut,            // Hàm đăng xuất
-    collection,         // Hàm tham chiếu đến một collection trong Firestore
-    addDoc,             // Hàm thêm document mới vào collection
-    query,              // Hàm tạo truy vấn Firestore
-    where,              // Hàm điều kiện cho truy vấn
-    orderBy,            // Hàm sắp xếp cho truy vấn
-    onSnapshot,         // Hàm lắng nghe thay đổi dữ liệu thời gian thực
-    doc,                // Hàm tham chiếu đến một document cụ thể
-    getDoc,             // Hàm lấy một document
-    updateDoc,          // Hàm cập nhật document
-    deleteDoc           // Hàm xóa document
+    auth, db, Timestamp,
+    onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
+    collection, addDoc, query, where, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc
 } from './firebaseService.js';
 
+// Import các hàm tiện ích từ utils.js
+import {
+    linkify,
+    highlightText,
+    hexToRgb,
+    darkenColor,
+    getNearestUpcomingDeadline
+} from './utils.js';
+
 // --- Lấy tham chiếu đến các phần tử DOM ---
-// (Toàn bộ phần này được giữ nguyên từ file script.js gốc của bạn)
+// (Giữ nguyên phần này)
 const authModalOverlay = document.getElementById('auth-modal-overlay');
 const authModal = document.getElementById('auth-modal');
 const closeAuthModalBtn = document.getElementById('close-auth-modal-btn');
@@ -104,7 +98,7 @@ const fontSelect = document.querySelector('.sidebar-settings #font-select');
 
 
 // --- Biến trạng thái toàn cục ---
-// (Toàn bộ phần này được giữ nguyên từ file script.js gốc của bạn)
+// (Giữ nguyên)
 let currentUser = null;
 let currentNoteId = null;
 let notesUnsubscribe = null;
@@ -126,21 +120,21 @@ let calendarSelectedStatus = '';
 let calendarSelectedPriority = '';
 
 // --- SVG Paths ---
-// (Toàn bộ phần này được giữ nguyên)
+// (Giữ nguyên)
 const pinAngleSVGPath = "M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a5.927 5.927 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707-.195-.195.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a5.922 5.922 0 0 1 1.013.16l3.134-3.133a2.772 2.772 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146zm-3.27 1.96a.5.5 0 0 1 0 .707L2.874 8.874a.5.5 0 1 1-.707-.707l3.687-3.687a.5.5 0 0 1 .707 0z";
 const pinAngleFillSVGPath = "M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a5.927 5.927 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707-.195-.195.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a5.922 5.922 0 0 1 1.013.16l3.134-3.133a2.772 2.772 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146z";
 
 
 // --- Logic cho Mobile Sidebar ---
-// (Toàn bộ phần này được giữ nguyên)
+// (Giữ nguyên)
 function openMobileSidebar() { document.body.classList.add('sidebar-open'); } function closeMobileSidebar() { document.body.classList.remove('sidebar-open'); } if (mobileMenuBtn) { mobileMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); document.body.classList.contains('sidebar-open') ? closeMobileSidebar() : openMobileSidebar(); }); } if (sidebarOverlay) { sidebarOverlay.addEventListener('click', closeMobileSidebar); } if (sidebar) { sidebar.addEventListener('click', (e) => { if (window.innerWidth <= 768 && e.target.closest('a, button')) { setTimeout(closeMobileSidebar, 150); } }); }
 
 // --- Logic cho Auth Modal ---
-// (Toàn bộ phần này được giữ nguyên)
+// (Giữ nguyên)
 function openAuthModal(mode = 'login') { loginError.textContent = ''; signupError.textContent = ''; if (mode === 'login') { loginForm.style.display = 'block'; signupForm.style.display = 'none'; } else { loginForm.style.display = 'none'; signupForm.style.display = 'block'; } document.body.classList.add('modal-open'); } function closeAuthModal() { document.body.classList.remove('modal-open'); } if (showLoginModalBtn) { showLoginModalBtn.addEventListener('click', () => openAuthModal('login')); } if (showSignupModalBtn) { showSignupModalBtn.addEventListener('click', () => openAuthModal('signup')); } if (closeAuthModalBtn) { closeAuthModalBtn.addEventListener('click', closeAuthModal); } if (authModalOverlay) { authModalOverlay.addEventListener('click', closeAuthModal); } if (showSignupLink) { showSignupLink.addEventListener('click', (e) => { e.preventDefault(); loginForm.style.display = 'none'; signupForm.style.display = 'block'; loginError.textContent = ''; }); } if (showLoginLink) { showLoginLink.addEventListener('click', (e) => { e.preventDefault(); signupForm.style.display = 'none'; loginForm.style.display = 'block'; signupError.textContent = ''; }); }
 
 // --- Hàm trợ giúp quản lý giao diện (UI Helpers) ---
-// (Toàn bộ phần này được giữ nguyên, các hàm tiện ích sẽ được chuyển đi ở Bước 2)
+// (Hàm linkify, highlightText, getNearestUpcomingDeadline đã được XÓA khỏi đây)
 function setActiveSidebarButton(activeButtonId) { [showAllNotesBtn, showCalendarBtn, showTrashBtn].forEach(btn => { if (btn) { btn.classList.toggle('active', btn.id === activeButtonId); } }); }
 function showMainNotesView() {
     if (!currentUser) return;
@@ -298,17 +292,15 @@ if (backToGridBtn) { const newBtn = backToGridBtn.cloneNode(true); backToGridBtn
 function clearEditorFields(prefillData = null) { noteTitleInput.value = ''; noteContentInput.value = ''; noteTagsInput.value = ''; noteEventDateInput.value = prefillData?.eventDate || ''; isCodeCheckbox.checked = false; languageSelect.value = 'plaintext'; languageSelect.style.display = 'none'; editorError.textContent = ''; hideTagSuggestions(); enableTodoCheckbox.checked = false; noteEditorTodosList.innerHTML = ''; toggleTodoEditorVisibility(); }
 function clearEditor() { clearEditorFields(); noteIdInput.value = ''; }
 function setActiveTagItem(tagName) { document.querySelectorAll('#tags-list-container .tag-item').forEach(item => { const itemTag = item.dataset.tag || (item.textContent === 'Tất cả' ? null : item.textContent); item.classList.toggle('active', itemTag === tagName); }); }
-function linkify(text) { if (!text) return ''; const urlRegex = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig; let linkedText = text.replace(urlRegex, (url) => { return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`; }); return linkedText.replace(/\n/g, '<br>'); }
-function highlightText(text, searchTerm) { if (!searchTerm) { const tempDiv = document.createElement('div'); tempDiv.textContent = text || ''; return tempDiv.innerHTML.replace(/\n/g, '<br>'); } if (!text) return ''; const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); const regex = new RegExp(`(${escapedSearchTerm})`, 'gi'); const tempDiv = document.createElement('div'); tempDiv.textContent = text; const escapedText = tempDiv.innerHTML.replace(/\n/g, '<br>'); return escapedText.replace(regex, '<span class="search-highlight">$1</span>'); }
 
 // --- Logic xử lý Theme, Màu Nhấn, Font ---
-// (Hàm hexToRgb và darkenColor sẽ được chuyển đi ở Bước 2)
+// (Hàm hexToRgb, darkenColor đã được XÓA khỏi đây)
 function applyTheme(themeName) { console.log("Applying theme:", themeName); document.body.classList.remove('theme-dark', 'theme-gruvbox-light', 'theme-dracula', 'theme-solarized-light'); if (themeName !== 'light') { document.body.classList.add(`theme-${themeName}`); } themeButtons.forEach(button => { button.classList.toggle('active', button.dataset.theme === themeName); }); if (prismThemeLink) { let prismThemeUrl = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css'; if (themeName === 'dark' || themeName === 'dracula') { prismThemeUrl = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css'; } else if (themeName === 'gruvbox-light') { prismThemeUrl = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css'; } else if (themeName === 'solarized-light') { prismThemeUrl = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-solarizedlight.min.css'; } prismThemeLink.href = prismThemeUrl; } try { localStorage.setItem('noteAppTheme', themeName); currentTheme = themeName; } catch (e) { console.error("Failed to save theme to localStorage:", e); } }
 function loadSavedTheme() { try { const savedTheme = localStorage.getItem('noteAppTheme'); if (savedTheme && ['light', 'dark', 'gruvbox-light', 'dracula', 'solarized-light'].includes(savedTheme)) { applyTheme(savedTheme); } else { applyTheme('light'); } } catch (e) { console.error("Failed to load theme from localStorage:", e); applyTheme('light'); } }
 themeButtons.forEach(button => { button.addEventListener('click', () => { const selectedTheme = button.dataset.theme; if (selectedTheme !== currentTheme) { applyTheme(selectedTheme); if (noteDetailView.style.display === 'block' && codeBlock.textContent && window.Prism) { Prism.highlightElement(codeBlock); } } }); });
-function hexToRgb(hex) { const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null; }
-function darkenColor(hexColor, percent) { let { r, g, b } = hexToRgb(hexColor); const factor = 1 - percent / 100; r = Math.max(0, Math.min(255, Math.round(r * factor))); g = Math.max(0, Math.min(255, Math.round(g * factor))); b = Math.max(0, Math.min(255, Math.round(b * factor))); return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`; }
-function applyAccentColor(colorHex) { console.log("Applying accent color:", colorHex); const root = document.documentElement; root.style.setProperty('--accent-color', colorHex); const hoverColor = darkenColor(colorHex, 15); root.style.setProperty('--accent-color-hover', hoverColor); const rgb = hexToRgb(colorHex); if (rgb) { root.style.setProperty('--shadow-focus', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.25)`); } accentColorButtons.forEach(button => { button.classList.toggle('active', button.dataset.accent === colorHex); }); try { localStorage.setItem('noteAppAccentColor', colorHex); currentAccentColor = colorHex; } catch (e) { console.error("Failed to save accent color to localStorage:", e); } }
+function applyAccentColor(colorHex) { console.log("Applying accent color:", colorHex); const root = document.documentElement; root.style.setProperty('--accent-color', colorHex); const hoverColor = darkenColor(colorHex, 15); // darkenColor is now imported
+    root.style.setProperty('--accent-color-hover', hoverColor); const rgb = hexToRgb(colorHex); // hexToRgb is now imported
+    if (rgb) { root.style.setProperty('--shadow-focus', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.25)`); } accentColorButtons.forEach(button => { button.classList.toggle('active', button.dataset.accent === colorHex); }); try { localStorage.setItem('noteAppAccentColor', colorHex); currentAccentColor = colorHex; } catch (e) { console.error("Failed to save accent color to localStorage:", e); } }
 function loadSavedAccentColor() { try { const savedAccentColor = localStorage.getItem('noteAppAccentColor'); if (savedAccentColor) { applyAccentColor(savedAccentColor); } else { applyAccentColor('#007bff'); } } catch (e) { console.error("Failed to load accent color from localStorage:", e); applyAccentColor('#007bff'); } }
 accentColorButtons.forEach(button => { button.addEventListener('click', () => { const selectedAccent = button.dataset.accent; if (selectedAccent !== currentAccentColor) { applyAccentColor(selectedAccent); } }); });
 function applyContentFont(fontFamily) { console.log("Applying content font:", fontFamily); document.documentElement.style.setProperty('--font-content', fontFamily); if (noteContentInput) { noteContentInput.style.fontFamily = fontFamily; } if (fontSelect && fontSelect.value !== fontFamily) { fontSelect.value = fontFamily; } try { localStorage.setItem('noteAppContentFont', fontFamily); currentContentFont = fontFamily; } catch (e) { console.error("Failed to save content font to localStorage:", e); } }
@@ -316,14 +308,14 @@ function loadSavedContentFont() { try { const savedFont = localStorage.getItem('
 if (fontSelect) { fontSelect.addEventListener('change', (e) => { const selectedFont = e.target.value; if (selectedFont !== currentContentFont) { applyContentFont(selectedFont); } }); } else { console.warn("Font select element not found."); }
 
 // --- Logic Xác thực (Authentication) ---
-// (Toàn bộ phần này được giữ nguyên)
+// (Giữ nguyên)
 onAuthStateChanged(auth, (user) => { if (user) { console.log("User logged in:", user.uid, user.email); currentUser = user; userEmailDisplay.textContent = user.email; document.body.classList.remove('logged-out'); document.body.classList.add('logged-in'); closeAuthModal(); closeMobileSidebar(); if(searchInput) searchInput.disabled = false; if(sortSelect) sortSelect.disabled = false; if(addNoteBtn) addNoteBtn.disabled = false; if(fabAddNoteBtn) fabAddNoteBtn.style.display = 'flex'; setActiveSidebarButton('show-all-notes-btn'); loadNotesAndTags(); loadTrashedNotes(); showMainNotesView(); syncFilterDropdownsToState(); } else { console.log("User logged out."); currentUser = null; document.body.classList.remove('logged-in'); document.body.classList.add('logged-out'); closeAuthModal(); closeMobileSidebar(); clearEditor(); notesListContainer.innerHTML = ''; trashListContainer.innerHTML = '<p>Thùng rác trống.</p>'; tagsListContainer.innerHTML = ''; if (notesUnsubscribe) { notesUnsubscribe(); notesUnsubscribe = null; } if (trashUnsubscribe) { trashUnsubscribe(); trashUnsubscribe = null; } notesCache = {}; trashedNotesCache = {}; allUserTags.clear(); activeTag = null; currentNoteId = null; currentSearchTerm = ''; currentSortOption = 'updatedAt_desc'; currentView = 'notes'; calendarSelectedTag = null; calendarSelectedStatus = ''; calendarSelectedPriority = ''; syncFilterDropdownsToState(); if(searchInput) searchInput.value = ''; if(sortSelect) sortSelect.value = currentSortOption; if(searchInput) searchInput.disabled = true; if(sortSelect) sortSelect.disabled = true; if(addNoteBtn) addNoteBtn.disabled = true; if(fabAddNoteBtn) fabAddNoteBtn.style.display = 'none'; notesGridView.style.display = 'none'; calendarView.style.display = 'none'; trashView.style.display = 'none'; noteDetailView.style.display = 'none'; noteEditorView.style.display = 'none'; if (urgentTaskBanner) urgentTaskBanner.style.display = 'none'; if (calendarFiltersCollapsible) calendarFiltersCollapsible.style.display = 'none'; if (toggleCalendarFiltersBtn) toggleCalendarFiltersBtn.setAttribute('aria-expanded', 'false'); } });
 loginForm.addEventListener('submit', (e) => { e.preventDefault(); const email = loginForm['login-email'].value; const password = loginForm['login-password'].value; loginError.textContent = ''; const submitButton = loginForm.querySelector('button[type="submit"]'); submitButton.disabled = true; submitButton.textContent = 'Đang đăng nhập...'; signInWithEmailAndPassword(auth, email, password) .then(() => { loginForm.reset(); }) .catch((error) => { loginError.textContent = `Lỗi: ${error.message}`; }) .finally(() => { submitButton.disabled = false; submitButton.textContent = 'Đăng nhập'; }); });
 signupForm.addEventListener('submit', (e) => { e.preventDefault(); const email = signupForm['signup-email'].value; const password = signupForm['signup-password'].value; signupError.textContent = ''; const submitButton = signupForm.querySelector('button[type="submit"]'); submitButton.disabled = true; submitButton.textContent = 'Đang đăng ký...'; createUserWithEmailAndPassword(auth, email, password) .then(() => { signupForm.reset(); }) .catch((error) => { signupError.textContent = `Lỗi: ${error.message}`; }) .finally(() => { submitButton.disabled = false; submitButton.textContent = 'Đăng ký'; }); });
 logoutButton.addEventListener('click', () => { signOut(auth).catch((error) => alert(`Lỗi đăng xuất: ${error.message}`)); });
 
 // --- Logic quản lý Ghi chú (Notes CRUD & Display) ---
-// (Toàn bộ phần này được giữ nguyên)
+// (Giữ nguyên)
 isCodeCheckbox.addEventListener('change', (e) => { languageSelect.style.display = e.target.checked ? 'inline-block' : 'none'; if (!e.target.checked) { languageSelect.value = 'plaintext'; } toggleTodoEditorVisibility(); });
 addNoteBtn.addEventListener('click', () => { showEditor(); });
 if (fabAddNoteBtn) { fabAddNoteBtn.addEventListener('click', () => { previousView = currentView; showEditor(); }); }
@@ -427,13 +419,12 @@ deleteNoteBtn.addEventListener('click', async () => { if (!currentNoteId || !not
 copyCodeBtn.addEventListener('click', () => { const codeToCopy = codeBlock.textContent; if (codeToCopy) { navigator.clipboard.writeText(codeToCopy) .then(() => { alert('Đã sao chép code vào clipboard!'); copyCodeBtn.textContent = 'Đã chép!'; setTimeout(() => { copyCodeBtn.textContent = 'Copy Code'; }, 1500); }) .catch(err => { console.error('Clipboard copy failed:', err); alert('Lỗi khi sao chép code.'); }); } });
 
 // --- Tải và Hiển thị Dữ liệu từ Firestore ---
-// (Hàm getNearestUpcomingDeadline sẽ được chuyển đi ở Bước 2)
+// (Hàm getNearestUpcomingDeadline đã được XÓA khỏi đây)
 function loadNotesAndTags() { if (!currentUser) return; console.log(`Loading notes for user: ${currentUser.uid}, Sort: ${currentSortOption}`); const [sortField, sortDirection] = currentSortOption.split('_'); let notesQuery = query( collection(db, "notes"), where("userId", "==", currentUser.uid), where("isTrashed", "==", false) ); if (currentSortOption !== 'deadline_asc') { notesQuery = query(notesQuery, orderBy("isPinned", "desc"), orderBy(sortField, sortDirection)); } else { notesQuery = query(notesQuery, orderBy("isPinned", "desc"), orderBy("updatedAt", "desc")); } if (notesUnsubscribe) notesUnsubscribe(); notesUnsubscribe = onSnapshot(notesQuery, (querySnapshot) => { console.log("Notes data received from Firestore"); const allNotes = []; const newNotesCache = {}; allUserTags.clear(); querySnapshot.forEach((doc) => { const note = { id: doc.id, ...doc.data() }; allNotes.push(note); newNotesCache[note.id] = note; if (note.tags && Array.isArray(note.tags)) { note.tags.forEach(tag => allUserTags.add(tag)); } }); notesCache = newNotesCache; if (currentView === 'notes') { renderNotesList(Object.values(notesCache)); displayGlobalUrgentTask(); } else if (currentView === 'calendar') { initializeCalendar(); } renderTagsList(allNotes); populateCalendarTagFilter(); if (currentNoteId && !notesCache[currentNoteId] && noteDetailView.style.display === 'block') { showMainNotesView(); } else if (currentNoteId && notesCache[currentNoteId] && noteDetailView.style.display === 'block') { displayNoteDetailContent(notesCache[currentNoteId]); } }, (error) => { console.error("Error loading main notes: ", error); if (error.code === 'failed-precondition') { notesListContainer.innerHTML = `<p class="error-message">Lỗi: Cần tạo chỉ mục (index) trong Firestore. Kiểm tra Console.</p>`; console.error("Firestore Index Required:", error.message); } else { notesListContainer.innerHTML = `<p class="error-message">Lỗi tải ghi chú: ${error.message}</p>`; } }); }
 function loadTrashedNotes() { if (!currentUser) return; console.log(`Loading trashed notes for user: ${currentUser.uid}`); const trashQuery = query( collection(db, "notes"), where("userId", "==", currentUser.uid), where("isTrashed", "==", true), orderBy("trashedAt", "desc") ); if (trashUnsubscribe) trashUnsubscribe(); trashUnsubscribe = onSnapshot(trashQuery, (querySnapshot) => { console.log("Trashed notes data received"); const allTrashedNotes = []; const newTrashedNotesCache = {}; querySnapshot.forEach((doc) => { const note = { id: doc.id, ...doc.data() }; allTrashedNotes.push(note); newTrashedNotesCache[note.id] = note; }); trashedNotesCache = newTrashedNotesCache; if (currentView === 'trash') { renderTrashedNotesList(Object.values(trashedNotesCache)); } }, (error) => { console.error("Error loading trashed notes: ", error); if (error.code === 'failed-precondition') { trashListContainer.innerHTML = `<p class="error-message">Lỗi: Cần tạo chỉ mục (index) cho thùng rác. Kiểm tra Console.</p>`; console.error("Firestore Index Required for trash:", error.message); } else { trashListContainer.innerHTML = `<p class="error-message">Lỗi tải thùng rác: ${error.message}</p>`; } }); }
 
 // --- Render Lists ---
-// (Hàm getNearestUpcomingDeadline sẽ được chuyển đi ở Bước 2)
-function getNearestUpcomingDeadline(note) { if (!note.todos || note.todos.length === 0) { return null; } const today = new Date(); today.setHours(0, 0, 0, 0); let nearestDeadline = null; note.todos.forEach(todo => { if (!todo.completed && todo.deadline) { try { const deadlineDate = new Date(todo.deadline + "T00:00:00"); if (!isNaN(deadlineDate) && deadlineDate >= today) { if (nearestDeadline === null || deadlineDate < nearestDeadline) { nearestDeadline = deadlineDate; } } } catch (e) { console.warn("Invalid date format in todo:", todo); } } }); return nearestDeadline; }
+// (Hàm getNearestUpcomingDeadline đã được XÓA khỏi đây)
 function renderNotesList(notesFromCache) {
     notesListContainer.innerHTML = '';
     const searchTermLower = currentSearchTerm.toLowerCase();
@@ -452,8 +443,8 @@ function renderNotesList(notesFromCache) {
 
     if (currentSortOption === 'deadline_asc') {
         notesToRender.sort((a, b) => {
-            const deadlineA = getNearestUpcomingDeadline(a);
-            const deadlineB = getNearestUpcomingDeadline(b);
+            const deadlineA = getNearestUpcomingDeadline(a); // getNearestUpcomingDeadline is now imported
+            const deadlineB = getNearestUpcomingDeadline(b); // getNearestUpcomingDeadline is now imported
             if (deadlineA && deadlineB) return deadlineA - deadlineB;
             if (deadlineA && !deadlineB) return -1; 
             if (!deadlineA && deadlineB) return 1;  
@@ -508,7 +499,7 @@ function renderNotesList(notesFromCache) {
         noteElement.appendChild(pinIcon);
 
         const titleElement = document.createElement('h3');
-        titleElement.innerHTML = highlightText(note.title || "Không có tiêu đề", currentSearchTerm);
+        titleElement.innerHTML = highlightText(note.title || "Không có tiêu đề", currentSearchTerm); // highlightText is now imported
 
         const contentPreview = document.createElement('div');
         contentPreview.classList.add('note-item-content-preview');
@@ -556,7 +547,7 @@ function renderNotesList(notesFromCache) {
             itemsToShow.forEach(todo => {
                 let todoText = todo.text.substring(0, 30) + (todo.text.length > 30 ? '...' : '');
                 previewHTML += `<div class="todo-preview-item">`;
-                previewHTML += `<span class="todo-status">${todo.completed ? '[x]' : '[ ]'}</span> <span class="todo-text">${highlightText(todoText, currentSearchTerm)}</span>`;
+                previewHTML += `<span class="todo-status">${todo.completed ? '[x]' : '[ ]'}</span> <span class="todo-text">${highlightText(todoText, currentSearchTerm)}</span>`; // highlightText is now imported
                 let metaInfo = [];
                 if (todo.deadline && !todo.completed) {
                     try {
@@ -579,7 +570,7 @@ function renderNotesList(notesFromCache) {
             if (totalCount > 0 && completedCount === totalCount) {
                 previewHTML = `<div class="todo-preview-summary">📊 (${completedCount}/${totalCount} việc)</div><div class="todo-preview-item">🎉 Tất cả đã hoàn thành!</div>`;
             } else if (itemsToShow.length === 0 && uncompletedTodos.length > 0) {
-                 previewHTML += `<div class="todo-preview-item">${highlightText(`Còn ${uncompletedTodos.length} việc chưa xong...`, currentSearchTerm)}</div>`;
+                 previewHTML += `<div class="todo-preview-item">${highlightText(`Còn ${uncompletedTodos.length} việc chưa xong...`, currentSearchTerm)}</div>`; // highlightText is now imported
             } else if (totalCount > itemsToShow.length && itemsToShow.length > 0 && itemsToShow.length < MAX_PREVIEW_ITEMS) {
                 const remainingTotal = totalCount - itemsToShow.length;
                 if (remainingTotal > 0) {
@@ -588,7 +579,7 @@ function renderNotesList(notesFromCache) {
             }
             contentPreview.innerHTML = previewHTML;
         } else {
-            contentPreview.innerHTML = highlightText(note.content || '', currentSearchTerm);
+            contentPreview.innerHTML = highlightText(note.content || '', currentSearchTerm); // highlightText is now imported
         }
 
         const dateElement = document.createElement('div');
@@ -606,7 +597,8 @@ function renderNotesList(notesFromCache) {
 // ... (Phần còn lại của file script.js giữ nguyên) ...
 function renderTrashedNotesList(trashedNotes) { trashListContainer.innerHTML = ''; if (trashedNotes.length === 0) { trashListContainer.innerHTML = '<p>Thùng rác trống.</p>'; return; } trashedNotes.forEach(note => { const noteElement = document.createElement('div'); noteElement.classList.add('note-item'); noteElement.dataset.id = note.id; const titleElement = document.createElement('h3'); titleElement.textContent = note.title || "Không có tiêu đề"; const contentPreview = document.createElement('div'); contentPreview.classList.add('note-item-content-preview'); if (note.todos && note.todos.length > 0) { const firstFewTodos = note.todos.slice(0, 3).map(todo => `${todo.completed ? '[x]' : '[ ]'} ${todo.text}`).join('\n'); contentPreview.textContent = firstFewTodos + (note.todos.length > 3 ? '\n...' : ''); } else { contentPreview.textContent = note.content || ''; } const trashedDateElement = document.createElement('div'); trashedDateElement.classList.add('note-item-date'); if (note.trashedAt && note.trashedAt.toDate) { trashedDateElement.textContent = `Vào thùng rác: ${note.trashedAt.toDate().toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit', year: 'numeric'})}`; } const actionsDiv = document.createElement('div'); actionsDiv.classList.add('trashed-note-actions'); const restoreBtn = document.createElement('button'); restoreBtn.classList.add('button-secondary'); restoreBtn.textContent = 'Khôi phục'; restoreBtn.addEventListener('click', (e) => { e.stopPropagation(); restoreNoteFromTrash(note.id); }); const deletePermanentlyBtn = document.createElement('button'); deletePermanentlyBtn.classList.add('button-danger'); deletePermanentlyBtn.textContent = 'Xóa vĩnh viễn'; deletePermanentlyBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteNotePermanently(note.id, note.title); }); actionsDiv.appendChild(restoreBtn); actionsDiv.appendChild(deletePermanentlyBtn); noteElement.appendChild(titleElement); noteElement.appendChild(contentPreview); noteElement.appendChild(trashedDateElement); noteElement.appendChild(actionsDiv); trashListContainer.appendChild(noteElement); }); }
 function renderTagsList(notes) { tagsListContainer.innerHTML = ''; const allTagElement = document.createElement('span'); allTagElement.classList.add('tag-item'); allTagElement.textContent = 'Tất cả'; if (activeTag === null) allTagElement.classList.add('active'); allTagElement.addEventListener('click', () => { if (activeTag !== null) { activeTag = null; setActiveTagItem(null); renderNotesList(Object.values(notesCache)); showMainNotesView(); } }); tagsListContainer.appendChild(allTagElement); [...allUserTags].sort().forEach(tag => { const tagElement = document.createElement('span'); tagElement.classList.add('tag-item'); tagElement.textContent = tag; tagElement.dataset.tag = tag; if (tag === activeTag) tagElement.classList.add('active'); tagElement.addEventListener('click', () => { if (activeTag !== tag) { activeTag = tag; setActiveTagItem(tag); renderNotesList(Object.values(notesCache)); showMainNotesView(); } }); tagsListContainer.appendChild(tagElement); }); if (allUserTags.size === 0) { const noTags = document.createElement('p'); noTags.textContent = 'Chưa có tag nào.'; noTags.style.fontSize = '0.9em'; noTags.style.color = 'var(--text-secondary)'; tagsListContainer.appendChild(noTags); } populateCalendarTagFilter(); }
-function displayNoteDetailContent(note) { if (!note) return; noteDetailTitle.textContent = note.title || "Không có tiêu đề"; if (pinNoteDetailBtn) { pinNoteDetailBtn.classList.toggle('pinned', !!note.isPinned); pinNoteDetailBtn.title = note.isPinned ? "Bỏ ghim ghi chú" : "Ghim ghi chú"; const svgIcon = pinNoteDetailBtn.querySelector('svg'); if (svgIcon) { const pathElement = svgIcon.querySelector('path'); if(pathElement){ pathElement.setAttribute('d', note.isPinned ? pinAngleFillSVGPath : pinAngleSVGPath); } svgIcon.classList.remove('bi-pin-angle', 'bi-pin-angle-fill'); svgIcon.classList.add(note.isPinned ? 'bi-pin-angle-fill' : 'bi-pin-angle'); } } noteDetailTags.innerHTML = ''; if (note.tags && note.tags.length > 0) { note.tags.forEach(tag => { const tagElement = document.createElement('span'); tagElement.classList.add('tag'); tagElement.textContent = tag; noteDetailTags.appendChild(tagElement); }); } if (note.isCode) { noteDetailContent.style.display = 'none'; noteDetailTodosContainer.style.display = 'none'; codeBlock.textContent = note.content; codeBlock.className = `language-${note.language || 'plaintext'}`; noteDetailCode.style.display = 'block'; copyCodeBtn.style.display = 'inline-block'; if (window.Prism) Prism.highlightElement(codeBlock); } else { noteDetailCode.style.display = 'none'; copyCodeBtn.style.display = 'none'; if (note.todos && Array.isArray(note.todos) && note.todos.length > 0) { noteDetailContent.style.display = 'none'; noteDetailTodosContainer.style.display = 'block'; renderTodosInDetailView(note.id, note.todos); } else { noteDetailTodosContainer.style.display = 'none'; noteDetailContent.innerHTML = linkify(note.content); noteDetailContent.style.display = 'block'; } } }
+function displayNoteDetailContent(note) { if (!note) return; noteDetailTitle.textContent = note.title || "Không có tiêu đề"; if (pinNoteDetailBtn) { pinNoteDetailBtn.classList.toggle('pinned', !!note.isPinned); pinNoteDetailBtn.title = note.isPinned ? "Bỏ ghim ghi chú" : "Ghim ghi chú"; const svgIcon = pinNoteDetailBtn.querySelector('svg'); if (svgIcon) { const pathElement = svgIcon.querySelector('path'); if(pathElement){ pathElement.setAttribute('d', note.isPinned ? pinAngleFillSVGPath : pinAngleSVGPath); } svgIcon.classList.remove('bi-pin-angle', 'bi-pin-angle-fill'); svgIcon.classList.add(note.isPinned ? 'bi-pin-angle-fill' : 'bi-pin-angle'); } } noteDetailTags.innerHTML = ''; if (note.tags && note.tags.length > 0) { note.tags.forEach(tag => { const tagElement = document.createElement('span'); tagElement.classList.add('tag'); tagElement.textContent = tag; noteDetailTags.appendChild(tagElement); }); } if (note.isCode) { noteDetailContent.style.display = 'none'; noteDetailTodosContainer.style.display = 'none'; codeBlock.textContent = note.content; codeBlock.className = `language-${note.language || 'plaintext'}`; noteDetailCode.style.display = 'block'; copyCodeBtn.style.display = 'inline-block'; if (window.Prism) Prism.highlightElement(codeBlock); } else { noteDetailCode.style.display = 'none'; copyCodeBtn.style.display = 'none'; if (note.todos && Array.isArray(note.todos) && note.todos.length > 0) { noteDetailContent.style.display = 'none'; noteDetailTodosContainer.style.display = 'block'; renderTodosInDetailView(note.id, note.todos); } else { noteDetailTodosContainer.style.display = 'none'; noteDetailContent.innerHTML = linkify(note.content); // linkify is now imported
+        noteDetailContent.style.display = 'block'; } } }
 async function togglePinStatus(noteId) { if (!currentUser || !notesCache[noteId]) return; const noteRef = doc(db, "notes", noteId); const currentPinnedStatus = notesCache[noteId].isPinned || false; const newPinnedStatus = !currentPinnedStatus; try { await updateDoc(noteRef, { isPinned: newPinnedStatus, updatedAt: Timestamp.now() }); console.log(`Note ${noteId} pin status updated to ${newPinnedStatus}`); } catch (error) { console.error("Error updating pin status:", error); alert("Lỗi cập nhật trạng thái ghim."); } } if (pinNoteDetailBtn) { pinNoteDetailBtn.addEventListener('click', () => { if (currentNoteId) togglePinStatus(currentNoteId); }); }
 async function restoreNoteFromTrash(noteId) { if (!currentUser || !trashedNotesCache[noteId]) return; const noteRef = doc(db, "notes", noteId); try { await updateDoc(noteRef, { isTrashed: false, trashedAt: null, updatedAt: Timestamp.now() }); console.log(`Note ${noteId} restored from trash.`); alert("Đã khôi phục ghi chú."); } catch (error) { console.error("Error restoring note:", error); alert("Lỗi khôi phục ghi chú."); } } async function deleteNotePermanently(noteId, noteTitle = "ghi chú này") { if (!currentUser || !trashedNotesCache[noteId]) return; if (confirm(`Bạn có chắc chắn muốn XÓA VĨNH VIỄN ghi chú "${noteTitle}" không? Hành động này KHÔNG THỂ hoàn tác.`)) { const noteRef = doc(db, "notes", noteId); try { await deleteDoc(noteRef); console.log(`Note ${noteId} permanently deleted.`); alert("Đã xóa vĩnh viễn ghi chú."); } catch (error) { console.error("Error permanently deleting note:", error); alert("Lỗi xóa vĩnh viễn ghi chú."); } } } if (showTrashBtn) { showTrashBtn.addEventListener('click', showTrashNotesView); } if (showAllNotesBtn) { showAllNotesBtn.addEventListener('click', showMainNotesView); }
 function displayTagSuggestions(suggestions, currentTagValue) { if (!tagSuggestionsContainer) return; tagSuggestionsContainer.innerHTML = ''; if (suggestions.length === 0) { hideTagSuggestions(); return; } suggestions.forEach(tag => { const suggestionItem = document.createElement('div'); suggestionItem.classList.add('suggestion-item'); suggestionItem.textContent = tag; suggestionItem.addEventListener('click', () => { const tagsArray = noteTagsInput.value.split(',').map(t => t.trim()); tagsArray.pop(); tagsArray.push(tag); noteTagsInput.value = tagsArray.join(', ') + ', '; hideTagSuggestions(); noteTagsInput.focus(); }); tagSuggestionsContainer.appendChild(suggestionItem); }); tagSuggestionsContainer.style.display = 'block'; } function hideTagSuggestions() { if (tagSuggestionsContainer) { tagSuggestionsContainer.style.display = 'none'; } } if (noteTagsInput) { noteTagsInput.addEventListener('input', () => { const inputValue = noteTagsInput.value; const tagsArray = inputValue.split(',').map(t => t.trim()); const currentTypingTag = tagsArray[tagsArray.length - 1].toLowerCase(); if (currentTypingTag) { const existingTagsInInput = tagsArray.slice(0, -1).map(t => t.toLowerCase()); const suggestions = [...allUserTags].filter(tag => tag.toLowerCase().startsWith(currentTypingTag) && !existingTagsInInput.includes(tag.toLowerCase()) ); displayTagSuggestions(suggestions, currentTypingTag); } else { hideTagSuggestions(); } }); noteTagsInput.addEventListener('blur', () => { setTimeout(hideTagSuggestions, 150); }); noteTagsInput.addEventListener('keydown', (e) => { if (e.key === 'Escape') { hideTagSuggestions(); } }); }
@@ -618,7 +610,7 @@ async function toggleTodoItemStatus(noteId, todoId, isCompleted) { if (!currentU
 function updateTodoProgress(todosArray = []) { if (!noteDetailTodosProgress) return; const totalTasks = todosArray.length; if (totalTasks === 0) { noteDetailTodosProgress.innerHTML = ''; return; } const completedTasks = todosArray.filter(todo => todo.completed).length; const percentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0; noteDetailTodosProgress.innerHTML = ` <span>Hoàn thành: ${completedTasks}/${totalTasks} công việc</span> <div class="progress-bar-container"> <div class="progress-bar" style="width: ${percentage}%;"></div> </div> `; }
 
 // --- LOGIC CHO CALENDAR VIEW ---
-// (Toàn bộ phần này được giữ nguyên)
+// (Giữ nguyên)
 if (toggleCalendarFiltersBtn && calendarFiltersCollapsible) {
     toggleCalendarFiltersBtn.addEventListener('click', () => {
         const isOpen = calendarFiltersCollapsible.style.display === 'block';
@@ -861,7 +853,7 @@ function initializeCalendar() {
 if (showCalendarBtn) { showCalendarBtn.addEventListener('click', showCalendarView); }
 
 // --- Banner Việc Gấp ---
-// (Toàn bộ phần này được giữ nguyên)
+// (Hàm getNearestUpcomingDeadline đã được XÓA khỏi đây)
 function displayGlobalUrgentTask() {
     if (!currentUser || !urgentTaskBanner) return;
     let mostUrgentTodo = null;
@@ -937,7 +929,7 @@ function displayGlobalUrgentTask() {
             } else if (mostUrgentTodo.priority === 'low') {
                 fullPriorityText = '🟢 Thấp';
             } else if (mostUrgentTodo.priority === 'medium') {
-                // fullPriorityText = 'Trung bình'; // Bỏ qua để banner gọn hơn
+                // fullPriorityText = 'Trung bình'; 
             }
         }
 
@@ -952,7 +944,7 @@ function displayGlobalUrgentTask() {
                     </svg>
                     VIỆC GẤP:
                 </span>
-                <span class="urgent-task-content">${highlightText(taskContent, currentSearchTerm)}</span>
+                <span class="urgent-task-content">${highlightText(taskContent, currentSearchTerm)}</span> 
             </div>
             <div class="urgent-task-banner-line2">
                 <span class="urgent-task-deadline">
@@ -961,7 +953,7 @@ function displayGlobalUrgentTask() {
                 </span>
                 ${fullPriorityText && mostUrgentTodo.priority !== 'medium' ? `<span class="urgent-task-priority-banner priority-${mostUrgentTodo.priority}">${fullPriorityText}</span>` : ''}
                 <span class="urgent-task-note-link-container">
-                    (Note: <span class="urgent-task-note-link" data-note-id="${urgentNoteDetails.id}">${highlightText(noteTitleText, currentSearchTerm)}</span>)
+                    (Note: <span class="urgent-task-note-link" data-note-id="${urgentNoteDetails.id}">${highlightText(noteTitleText, currentSearchTerm)}</span>) 
                 </span>
             </div>
         `;
@@ -973,8 +965,8 @@ function displayGlobalUrgentTask() {
     }
 }
 
+
 // --- Khởi chạy ---
-// (Toàn bộ phần này được giữ nguyên)
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
     loadSavedAccentColor();
