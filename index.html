@@ -3,223 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlexiNote - Integrated</title>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-
+    <title>Ghi Chú Cá Nhân</title>
+    <link rel="stylesheet" href="style.css">
+    <link id="prism-theme-link" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Noto+Sans:wght@400;700&family=Open+Sans:wght@400;700&family=Roboto:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="style.css">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css"/>
+
+
+    <script type="module" src="script.js" defer></script>
 </head>
-<body>
+<body class="logged-out">
 
-    <div class="app-container">
+    <div id="auth-modal-overlay" class="modal-overlay"></div>
+    <div id="auth-modal" class="modal">
+        <button id="close-auth-modal-btn" class="modal-close-btn">&times;</button>
+        <div id="auth-modal-content">
+             <form id="login-form">
+                <h2>Đăng nhập</h2>
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Mật khẩu" required>
+                <button type="submit" class="button-primary">Đăng nhập</button>
+                <p id="login-error" class="error-message"></p>
+                <p class="auth-switch-link">Chưa có tài khoản? <span id="show-signup-link">Đăng ký ngay</span></p>
+            </form>
 
-        <aside id="app-sidebar" class="app-sidebar">
-            <div class="sidebar-header">
-                <h2>Modules</h2>
+            <form id="signup-form" style="display: none;">
+                <h2>Đăng ký</h2>
+                <input type="email" id="signup-email" placeholder="Email" required>
+                <input type="password" id="signup-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" required>
+                <button type="submit" class="button-primary">Đăng ký</button>
+                <p id="signup-error" class="error-message"></p>
+                <p class="auth-switch-link">Đã có tài khoản? <span id="show-login-link">Đăng nhập</span></p>
+            </form>
+        </div>
+    </div>
+    <div id="app-container">
+        <header class="app-header">
+            <button id="mobile-menu-btn" class="mobile-menu-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
+                </svg>
+            </button>
+            <h1>Ghi Chú Của Tôi</h1>
+            <div class="user-info">
+                <span id="user-email" class="logged-in-element"></span>
+                <button id="logout-button" class="button-secondary logged-in-element">Đăng xuất</button>
+                <button id="show-login-modal-btn" class="button-secondary logged-out-element">Đăng nhập</button>
+                <button id="show-signup-modal-btn" class="button-primary logged-out-element">Đăng ký</button>
             </div>
-            <nav class="sidebar-nav">
-                <ul>
-                    <li><button class="sidebar-nav-button active" data-module="notes">📝 Ghi chú</button></li>
-                    <li><button class="sidebar-nav-button" data-module="goals">🎯 Mục tiêu</button></li>
-                    <li><button class="sidebar-nav-button" data-module="habits">🔄 Thói quen</button></li>
-                    <li><button class="sidebar-nav-button" data-module="skills">💡 Kỹ năng</button></li>
-                    <li><button class="sidebar-nav-button" data-module="time">⏱️ Thời gian</button></li>
-                </ul>
-            </nav>
-             <div class="sidebar-footer">
-            </div>
-        </aside>
+        </header>
 
-        <div id="app-main-content" class="main-content">
-
-            <header class="app-header">
-                <h1>FlexiNote 4 Everything</h1>
-                <div class="header-actions">
-                    <button id="manage-notebooks-btn" title="Quản lý các sổ tay">Quản lý Sổ tay</button>
-                    <button id="manage-templates-btn" title="Quản lý các mẫu ghi chú">Quản lý Mẫu</button>
-                    <button id="view-archive-btn" title="Xem các ghi chú đã lưu trữ">Xem Lưu trữ</button>
-                    <button id="view-trash-btn" title="Xem các ghi chú đã xóa">Thùng rác</button>
-                    <button id="empty-trash-btn" class="hidden" title="Xóa vĩnh viễn tất cả ghi chú trong thùng rác">Dọn sạch Thùng rác</button>
-                    <button id="export-notes-btn" title="Xuất tất cả ghi chú, mẫu và sổ tay ra file JSON">Xuất Notes</button>
-                    <button id="import-notes-btn" title="Nhập ghi chú, mẫu và sổ tay từ file JSON (Sẽ thay thế toàn bộ dữ liệu hiện tại)">Nhập Notes</button>
-                    <input type="file" id="import-file-input" accept=".json" class="hidden">
-                    <button id="settings-btn" title="Mở cài đặt giao diện">Cài đặt</button>
-                    <button id="theme-toggle-btn" title="Chuyển đổi Chế độ Sáng/Tối"></button>
+        <div class="main-content has-sidebar">
+            <aside id="sidebar" class="sidebar">
+                <button id="add-note-btn" class="button-primary full-width">Thêm Ghi Chú Mới</button>
+                <hr>
+                <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú...">
+                <hr>
+                <h2>Tags</h2>
+                <div id="tags-list-container">
+                    </div>
+                <hr>
+                 <button id="show-all-notes-btn" class="sidebar-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-card-list" viewBox="0 0 16 16">
+                        <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z"/>
+                        <path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8m0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0M4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
+                    </svg>
+                     Tất cả Ghi chú
+                </button>
+                 <button id="show-calendar-btn" class="sidebar-button">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-week" viewBox="0 0 16 16">
+                         <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z"/>
+                         <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+                     </svg>
+                     Lịch
+                 </button>
+                <button id="show-trash-btn" class="sidebar-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                        <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66H14.5a.5.5 0 0 0 0-1H11Zm-1 1.007H6.5V13h3V3.5ZM5.036 3.5h5.928L10.202 13H5.797L5.036 3.5Z"/>
+                    </svg>
+                    Thùng rác
+                </button>
+                <div class="sidebar-settings">
+                    <hr>
+                    <h2>Giao diện</h2>
+                    <div class="theme-selector">
+                         <h3>Chủ đề</h3>
+                         <div class="theme-options">
+                            <button data-theme="light" class="theme-button" title="Giao diện Sáng">Sáng</button>
+                            <button data-theme="dark" class="theme-button" title="Giao diện Tối">Tối</button>
+                            <button data-theme="gruvbox-light" class="theme-button" title="Giao diện Gruvbox Sáng">Gruvbox</button>
+                            <button data-theme="dracula" class="theme-button" title="Giao diện Dracula">Dracula</button>
+                            <button data-theme="solarized-light" class="theme-button" title="Giao diện Solarized Sáng">Solarized</button>
+                         </div>
+                    </div>
+                    <div class="accent-color-selector">
+                        <h3>Màu nhấn</h3>
+                        <div class="accent-color-options">
+                            <button class="accent-color-button" data-accent="#007bff" style="background-color: #007bff;" title="Xanh dương (Mặc định)"></button>
+                            <button class="accent-color-button" data-accent="#198754" style="background-color: #198754;" title="Xanh lá"></button>
+                            <button class="accent-color-button" data-accent="#dc3545" style="background-color: #dc3545;" title="Đỏ"></button>
+                            <button class="accent-color-button" data-accent="#ffc107" style="background-color: #ffc107;" title="Vàng"></button>
+                            <button class="accent-color-button" data-accent="#fd7e14" style="background-color: #fd7e14;" title="Cam"></button>
+                            <button class="accent-color-button" data-accent="#6f42c1" style="background-color: #6f42c1;" title="Tím"></button>
+                        </div>
+                    </div>
+                    <div class="font-selector">
+                        <h3>Font chữ Nội dung</h3>
+                        <select id="font-select">
+                            <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'">Hệ thống (Mặc định)</option>
+                            <option value="'Lora', serif">Lora (Serif)</option>
+                            <option value="'Roboto', sans-serif">Roboto (Sans-serif)</option>
+                            <option value="'Open Sans', sans-serif">Open Sans (Sans-serif)</option>
+                            <option value="'Merriweather', serif">Merriweather (Serif)</option>
+                        </select>
+                    </div>
                 </div>
-                <div id="archive-status-indicator" class="archive-status hidden">Đang xem các ghi chú đã lưu trữ.</div>
-                <div id="trash-status-indicator" class="trash-status hidden">Đang xem Thùng rác.</div>
-            </header>
+            </aside>
 
-            <main>
-                <div id="notes-module">
-                    <div id="notebook-tabs-container" class="notebook-tabs">
-                        <button class="tab-button active" data-notebook-id="all">Tất cả Ghi chú</button>
-                        <button id="add-notebook-tab-btn" class="add-tab-button" title="Thêm Sổ tay mới">+</button>
+            <main id="content-area" class="content-area">
+                <div id="welcome-message" class="logged-out-element" style="text-align: center; margin-top: 50px; color: var(--text-secondary);">
+                    <h2>Chào mừng đến với Ghi Chú Cá Nhân!</h2>
+                    <p>Vui lòng <span class="auth-link" onclick="document.getElementById('show-login-modal-btn').click();">Đăng nhập</span> hoặc <span class="auth-link" onclick="document.getElementById('show-signup-modal-btn').click();">Đăng ký</span> để bắt đầu.</p>
+                </div>
+
+                <div id="notes-grid-view" class="logged-in-element">
+                    <div id="urgent-task-banner" class="urgent-task-banner" style="display: none;">
+                        </div>
+                    <div class="grid-view-header">
+                        <h2 id="main-view-title">Tất cả Ghi chú <span id="active-tag-display"></span></h2>
+                        <div class="sort-options">
+                            <label for="sort-select">Sắp xếp theo:</label>
+                            <select id="sort-select">
+                                <option value="updatedAt_desc">Ngày cập nhật (Mới nhất)</option>
+                                <option value="updatedAt_asc">Ngày cập nhật (Cũ nhất)</option>
+                                <option value="title_asc">Tiêu đề (A-Z)</option>
+                                <option value="title_desc">Tiêu đề (Z-A)</option>
+                                <option value="deadline_asc">Hạn chót gần nhất</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="notes-list-container">
+                        <p>Đang tải ghi chú...</p>
+                    </div>
+                    <button id="fab-add-note-btn" class="fab button-primary logged-in-element" title="Tạo ghi chú mới">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="calendar-view" style="display: none;" class="logged-in-element">
+                    <div class="calendar-view-header">
+                        <h2>Lịch Công Việc & Sự kiện</h2>
+                        <button id="toggle-calendar-filters-btn" class="button-secondary" aria-expanded="false" aria-controls="calendar-filters-collapsible">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-filter" viewBox="0 0 16 16" style="margin-right: 5px; vertical-align: text-bottom;">
+                                <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/>
+                            </svg>
+                            Bộ lọc
+                            <span id="calendar-filter-indicator" style="display:none; font-size: 0.8em; margin-left: 5px;"></span>
+                        </button>
                     </div>
 
-                    <div class="controls-container">
-                        <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú (tiêu đề, nội dung hoặc #tag)...">
-                        <div id="add-note-panel" class="hidden">
-                            <div class="form-group">
-                                <label for="template-select">Sử dụng mẫu:</label>
-                                <select id="template-select">
-                                    <option value="">-- Không dùng mẫu --</option>
+                    <div id="calendar-filters-collapsible" class="calendar-filters-collapsible" style="display: none;">
+                        <div class="calendar-filter-options-inner">
+                            <div>
+                                <label for="calendar-tag-filter">Tag:</label>
+                                <select id="calendar-tag-filter">
+                                    <option value="">Tất cả Tags</option>
+                                    </select>
+                            </div>
+                            <div>
+                                <label for="calendar-status-filter">Trạng thái:</label>
+                                <select id="calendar-status-filter">
+                                    <option value="">Tất cả</option>
+                                    <option value="uncompleted">Chưa hoàn thành</option>
+                                    <option value="completed">Đã hoàn thành</option>
                                 </select>
                             </div>
-                            <input type="text" id="new-note-title" placeholder="Tiêu đề (tùy chọn)...">
-                            <textarea id="new-note-text" placeholder="Nhập nội dung ghi chú..."></textarea>
-                            <input type="text" id="new-note-tags" placeholder="Tags (cách nhau bằng dấu phẩy)..." autocomplete="off">
-                            <div class="panel-actions">
-                                <button id="add-note-btn">Thêm Ghi Chú</button>
-                                <button id="close-add-panel-btn">Đóng</button>
+                            <div>
+                                <label for="calendar-priority-filter">Ưu tiên:</label>
+                                <select id="calendar-priority-filter">
+                                    <option value="">Tất cả</option>
+                                    <option value="high">Cao</option>
+                                    <option value="medium">Trung bình</option>
+                                    <option value="low">Thấp</option>
+                                </select>
                             </div>
+                        </div>
+                        <div class="calendar-filters-actions">
+                            <button id="apply-calendar-filters-btn" class="button-primary">Áp dụng</button>
+                            <button id="close-calendar-filters-btn" class="button-secondary">Đóng</button>
                         </div>
                     </div>
 
-                    <div id="notes-container">
+                    <div id="calendar-container"></div>
+                </div>
+                <div id="trash-view" style="display: none;" class="logged-in-element">
+                    <div class="grid-view-header">
+                        <h2>Ghi chú trong Thùng rác</h2>
+                    </div>
+                    <div id="trash-list-container">
+                        <p>Thùng rác trống.</p>
+                    </div>
+                </div>
+
+                <div id="note-detail-view" style="display: none;" class="logged-in-element">
+                     <button id="back-to-grid-btn" class="button-secondary back-button">&larr; Quay lại</button>
+                     <button id="pin-note-detail-btn" class="pin-button" title="Ghim/Bỏ ghim ghi chú">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pin-angle" viewBox="0 0 16 16">
+                            <path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a5.927 5.927 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707-.195-.195.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a5.922 5.922 0 0 1 1.013.16l3.134-3.133a2.772 2.772 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146zm-3.27 1.96a.5.5 0 0 1 0 .707L2.874 8.874a.5.5 0 1 1-.707-.707l3.687-3.687a.5.5 0 0 1 .707 0z"/>
+                        </svg>
+                     </button>
+                     <h2 id="note-detail-title"></h2>
+                     <div id="note-detail-tags" class="tags-display"></div>
+                     <div id="note-detail-content" class="content-display"></div>
+                     <pre id="note-detail-code" style="display: none;"><code class="language-plaintext"></code></pre>
+                     <div id="note-detail-todos-container" style="display: none;">
+                        <h3>Danh sách công việc:</h3>
+                        <ul id="note-detail-todos-list"></ul>
+                        <div id="note-detail-todos-progress" style="margin-top: 10px;"></div>
+                     </div>
+                     <div id="note-detail-actions">
+                          <button id="edit-note-btn" class="button-secondary">Sửa</button>
+                          <button id="delete-note-btn" class="button-danger">Xóa</button>
+                          <button id="copy-code-btn" class="button-secondary" style="display: none;">Copy Code</button>
+                     </div>
+                </div>
+
+                <div id="note-editor-view" style="display: none;" class="logged-in-element">
+                    <h2 id="editor-title">Soạn thảo Ghi chú</h2>
+                    <input type="hidden" id="note-id-input">
+                    <input type="text" id="note-title-input" placeholder="Tiêu đề" required>
+                    <textarea id="note-content-input" placeholder="Nội dung ghi chú..." rows="10" required></textarea>
+                    <div class="tag-input-container">
+                        <input type="text" id="note-tags-input" placeholder="Tags (cách nhau bằng dấu phẩy)">
+                        <div id="tag-suggestions" class="tag-suggestions-list" style="display: none;"></div>
+                    </div>
+                    <div class="event-date-input-container">
+                        <label for="note-event-date">Ngày sự kiện (tùy chọn):</label>
+                        <input type="date" id="note-event-date">
+                    </div>
+                    <div class="code-options">
+                        <input type="checkbox" id="note-is-code-checkbox">
+                        <label for="note-is-code-checkbox">Đây là code?</label>
+                        <select id="note-language-select" style="display: none;">
+                            <option value="plaintext">Plain Text</option>
+                            <option value="markup">Markup (HTML/XML/SVG)</option>
+                            <option value="css">CSS</option>
+                            <option value="javascript">JavaScript (JS)</option>
+                            <option value="python">Python</option>
+                            <option value="java">Java</option>
+                            <option value="c">C</option>
+                            <option value="cpp">C++</option>
+                            <option value="csharp">C#</option>
+                            <option value="php">PHP</option>
+                            <option value="ruby">Ruby</option>
+                            <option value="go">Go</option>
+                            <option value="swift">Swift</option>
+                            <option value="kotlin">Kotlin</option>
+                            <option value="sql">SQL</option>
+                            <option value="json">JSON</option>
+                            <option value="yaml">YAML</option>
+                            <option value="bash">Bash/Shell</option>
+                            <option value="markdown">Markdown</option>
+                            <option value="typescript">TypeScript</option>
+                            <option value="jsx">JSX (React)</option>
+                            <option value="tsx">TSX (React)</option>
+                        </select>
                     </div>
 
-                    <button id="show-add-panel-btn" class="fab" title="Thêm ghi chú mới">+</button>
-                </div>
+                    <div id="note-editor-todos-container" style="margin-top: 20px;">
+                        <h3>Danh sách công việc (<label for="enable-todo-checkbox">Bật/Tắt</label> <input type="checkbox" id="enable-todo-checkbox">)</h3>
+                        <ul id="note-editor-todos-list" style="list-style: none; padding-left: 0;"></ul>
+                        <button type="button" id="add-todo-editor-item-btn" class="button-secondary" style="margin-top: 10px;">Thêm công việc</button>
+                    </div>
 
-                <div id="goals-module" class="app-module-container hidden">
-                     <p>Đang tải Mục tiêu...</p>
-                </div>
-
-                <div id="habits-module" class="app-module-container hidden">
-                     <p>Đang tải Thói quen...</p>
-                </div>
-
-                <div id="skills-module" class="app-module-container hidden">
-                     <p>Đang tải Kỹ năng...</p>
-                </div>
-
-                <div id="time-module" class="app-module-container hidden">
-                     <p>Đang tải Thời gian...</p>
+                    <div class="editor-actions">
+                        <button id="save-note-btn" class="button-primary">Lưu Ghi Chú</button>
+                        <button id="cancel-edit-btn" class="button-secondary">Hủy</button>
+                    </div>
+                     <p id="editor-error" class="error-message"></p>
                 </div>
             </main>
-
-            <footer class="text-center text-gray-500 mt-8 p-4" style="color: var(--secondary-color); font-size: 0.9em;">
-                 <p>&copy; 2025 - FlexiNote Integrated</p>
-            </footer>
-
         </div>
+
+        <div id="sidebar-overlay"></div>
 
     </div>
 
-    <div id="notebook-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="notebook-modal-title">
-        <div class="modal-content notebook-modal-content">
-            {/* Nội dung modal sổ tay giữ nguyên từ FlexiNote gốc */}
-             <div class="modal-header">
-                 <h2 id="notebook-modal-title">Quản lý Sổ tay</h2>
-                 <button id="close-notebook-modal-btn" class="close-modal-btn" title="Đóng (Esc)" aria-label="Đóng cửa sổ quản lý sổ tay">&times;</button>
-             </div>
-             <div class="modal-body">
-                 <div id="notebook-list-section">
-                     <h3>Danh sách Sổ tay</h3>
-                     <div id="notebook-list-container">
-                         <p class="empty-state">Chưa có sổ tay nào.</p>
-                     </div>
-                     <button id="show-add-notebook-panel-btn" class="modal-button primary">Tạo Sổ tay Mới</button>
-                 </div>
-                 <div id="notebook-edit-panel" class="hidden">
-                     <h3 id="notebook-edit-title">Tạo Sổ tay Mới</h3>
-                     <input type="hidden" id="notebook-edit-id">
-                     <div class="form-group">
-                         <label for="notebook-edit-name">Tên Sổ tay (bắt buộc):</label>
-                         <input type="text" id="notebook-edit-name" placeholder="Ví dụ: Công việc, Cá nhân...">
-                     </div>
-                     <div class="panel-actions">
-                         <button id="save-notebook-btn" class="modal-button primary">Lưu Sổ tay</button>
-                         <button id="cancel-edit-notebook-btn" class="modal-button secondary">Hủy</button>
-                     </div>
-                 </div>
-             </div>
-        </div>
-    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 
-    <div id="template-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="template-modal-title">
-         <div class="modal-content template-modal-content">
-            {/* Nội dung modal mẫu giữ nguyên từ FlexiNote gốc */}
-             <div class="modal-header">
-                 <h2 id="template-modal-title">Quản lý Mẫu Ghi Chú</h2>
-                 <button id="close-template-modal-btn" class="close-modal-btn" title="Đóng (Esc)" aria-label="Đóng cửa sổ quản lý mẫu">&times;</button>
-             </div>
-             <div class="modal-body">
-                 <div id="template-list-section">
-                     <h3>Danh sách Mẫu</h3>
-                     <div id="template-list-container">
-                         <p class="empty-state">Chưa có mẫu nào.</p>
-                     </div>
-                     <button id="show-add-template-panel-btn" class="modal-button primary">Tạo Mẫu Mới</button>
-                 </div>
-                 <div id="template-edit-panel" class="hidden">
-                     <h3 id="template-edit-title">Tạo Mẫu Mới</h3>
-                     <input type="hidden" id="template-edit-id">
-                     <div class="form-group">
-                         <label for="template-edit-name">Tên Mẫu (bắt buộc):</label>
-                         <input type="text" id="template-edit-name" placeholder="Ví dụ: Họp hàng tuần, Ý tưởng Blog...">
-                     </div>
-                     <div class="form-group">
-                         <label for="template-edit-title-input">Tiêu đề Mẫu:</label>
-                         <input type="text" id="template-edit-title-input" placeholder="Tiêu đề mặc định...">
-                     </div>
-                     <div class="form-group">
-                         <label for="template-edit-text">Nội dung Mẫu:</label>
-                         <textarea id="template-edit-text" placeholder="Nội dung mặc định..."></textarea>
-                     </div>
-                     <div class="form-group">
-                         <label for="template-edit-tags">Tags Mẫu:</label>
-                         <input type="text" id="template-edit-tags" placeholder="Tags mặc định (cách nhau bằng dấu phẩy)...">
-                     </div>
-                     <div class="panel-actions">
-                         <button id="save-template-btn" class="modal-button primary">Lưu Mẫu</button>
-                         <button id="cancel-edit-template-btn" class="modal-button secondary">Hủy</button>
-                     </div>
-                 </div>
-             </div>
-        </div>
-    </div>
+    <button id="scrollToTopBtn" title="Cuộn lên đầu trang">&uarr;</button>
 
-    <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
-         <div class="modal-content settings-modal-content">
-            {/* Nội dung modal cài đặt giữ nguyên từ FlexiNote gốc */}
-            <div class="modal-header">
-                 <h2 id="settings-modal-title">Tùy chỉnh Giao diện</h2>
-                 <button id="close-settings-modal-btn" class="close-modal-btn" title="Đóng (Esc)" aria-label="Đóng cửa sổ cài đặt">&times;</button>
-             </div>
-             <div class="modal-body">
-                {/* ... Các phần cài đặt theme, màu, font ... */}
-             </div>
-        </div>
-    </div>
-
-    <div id="habit-history-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="modal-habit-name" class="text-lg font-semibold">Lịch sử Thói quen</h3>
-                <button id="close-history-modal-btn" class="close-modal-btn">&times;</button>
-            </div>
-            <div class="flex justify-between items-center mb-3">
-                <button id="prev-month-btn" class="modal-button secondary small-button">&lt; Trước</button>
-                <span id="current-month-year" class="font-semibold">Tháng Năm 2025</span>
-                <button id="next-month-btn" class="modal-button secondary small-button">Sau &gt;</button>
-            </div>
-            <div id="calendar-grid-container" class="calendar-grid">
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js" defer></script>
-    <script src="goals.js" defer></script>
-    <script src="habits.js" defer></script>
-    <script src="skills.js" defer></script>
-    <script src="time.js" defer></script>
-
-</body>
+    </body>
 </html>
