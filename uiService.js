@@ -24,8 +24,9 @@ function openMobileSidebar() {
 
 /**
  * Đóng mobile sidebar.
+ * Hàm này cần được export để script.js có thể gọi khi cần (ví dụ, sau khi click một item trong sidebar).
  */
-function closeMobileSidebar() {
+export function closeMobileSidebar() { // ĐÃ THÊM EXPORT
     if (sidebarEl) document.body.classList.remove('sidebar-open');
 }
 
@@ -78,7 +79,7 @@ function hideAllMainViews() {
     if (trashViewEl) trashViewEl.style.display = 'none';
     if (noteDetailViewEl) noteDetailViewEl.style.display = 'none';
     if (noteEditorViewEl) noteEditorViewEl.style.display = 'none';
-    if (welcomeMessageEl) welcomeMessageEl.style.display = 'none'; // Ẩn cả welcome message
+    if (welcomeMessageEl) welcomeMessageEl.style.display = 'none';
     if (calendarFiltersCollapsibleEl) calendarFiltersCollapsibleEl.style.display = 'none';
     if (toggleCalendarFiltersBtnEl) toggleCalendarFiltersBtnEl.setAttribute('aria-expanded', 'false');
 }
@@ -98,11 +99,9 @@ export function showMainNotesViewUI(activeTag = null) {
     updateMainViewTitleUI("Tất cả Ghi chú", activeTag);
     setActiveSidebarButtonUI('show-all-notes-btn');
 
-    // Logic ẩn/hiện các nút điều hướng sidebar
     if (showAllNotesBtnEl) showAllNotesBtnEl.style.display = 'none';
     if (showCalendarBtnEl) showCalendarBtnEl.style.display = 'flex';
     if (showTrashBtnEl) showTrashBtnEl.style.display = 'flex';
-
 
     if (contentAreaEl) contentAreaEl.scrollTop = 0;
     console.log("UI Service: Showing Main Notes View");
@@ -119,7 +118,6 @@ export function showCalendarViewUI() {
     previousViewInternal = currentViewInternal;
     currentViewInternal = 'calendar';
     
-    // Tiêu đề cho view lịch được quản lý bởi FullCalendar hoặc header riêng của nó
     setActiveSidebarButtonUI('show-calendar-btn');
 
     if (showAllNotesBtnEl) showAllNotesBtnEl.style.display = 'flex';
@@ -141,7 +139,6 @@ export function showTrashNotesViewUI() {
     previousViewInternal = currentViewInternal;
     currentViewInternal = 'trash';
     
-    // Tiêu đề cho view thùng rác thường cố định
     setActiveSidebarButtonUI('show-trash-btn');
 
     if (showAllNotesBtnEl) showAllNotesBtnEl.style.display = 'flex';
@@ -166,10 +163,10 @@ export function showEditorUI(isEditing) {
     }
     currentViewInternal = 'editor';
     
-    const editorTitleEl = document.getElementById('editor-title'); // Cần DOM element này
+    const editorTitleEl = document.getElementById('editor-title');
     if (editorTitleEl) editorTitleEl.textContent = isEditing ? "Sửa Ghi chú" : "Tạo Ghi chú Mới";
     
-    closeMobileSidebar();
+    closeMobileSidebar(); // Đóng sidebar khi mở editor
     if (contentAreaEl) contentAreaEl.scrollTop = 0;
     console.log("UI Service: Showing Editor View");
 }
@@ -187,29 +184,27 @@ export function showDetailViewUI() {
     }
     currentViewInternal = 'detail';
     
-    closeMobileSidebar();
+    closeMobileSidebar(); // Đóng sidebar khi mở chi tiết
     if (contentAreaEl) contentAreaEl.scrollTop = 0;
     console.log("UI Service: Showing Detail View");
 }
 
 /**
  * Xử lý sự kiện click nút "Quay lại".
- * Hàm này sẽ được gọi từ event listener trong script.js (hoặc module quản lý note).
  */
 export function handleBackButtonUI() {
     console.log("UI Service: Handling Back Button. Previous view:", previousViewInternal);
     if (fabAddNoteBtnEl) {
-        // Hiển thị FAB nếu quay lại view notes và có người dùng đăng nhập
-        // (việc kiểm tra người dùng đăng nhập nên ở logic gọi hàm này)
-        fabAddNoteBtnEl.style.display = (previousViewInternal === 'notes') ? 'flex' : 'none';
+        const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null; // Kiểm tra getCurrentUser tồn tại
+        fabAddNoteBtnEl.style.display = (previousViewInternal === 'notes' && user) ? 'flex' : 'none';
     }
 
     if (previousViewInternal === 'calendar') {
         showCalendarViewUI();
     } else if (previousViewInternal === 'trash') {
         showTrashNotesViewUI();
-    } else { // Mặc định quay về view notes
-        showMainNotesViewUI(null); // Truyền null cho activeTag để reset
+    } else { 
+        showMainNotesViewUI(null); // activeTag sẽ được lấy từ state của script.js nếu cần
     }
 }
 
@@ -220,18 +215,18 @@ export function setupInitialUIForLoggedOutState() {
     hideAllMainViews();
     if (welcomeMessageEl) welcomeMessageEl.style.display = 'block';
     if (fabAddNoteBtnEl) fabAddNoteBtnEl.style.display = 'none';
-    // Các nút trên header và class body (logged-in/out) được quản lý bởi authService
+    closeMobileSidebar();
     console.log("UI Service: Setup UI for logged out state.");
 }
 
 /**
  * Thiết lập UI ban đầu cho trạng thái đã đăng nhập.
- * @param {string | null} activeTag - Tag đang active (nếu có, từ state).
+ * @param {string | null} activeTag - Tag đang active (nếu có, từ state của script.js).
  */
 export function setupInitialUIForLoggedInState(activeTag = null) {
     if (welcomeMessageEl) welcomeMessageEl.style.display = 'none';
-    // Mặc định hiển thị view notes khi đăng nhập
-    showMainNotesViewUI(activeTag);
+    showMainNotesViewUI(activeTag); // Mặc định hiển thị view notes
+    closeMobileSidebar();
     console.log("UI Service: Setup UI for logged in state.");
 }
 
@@ -255,14 +250,13 @@ export function initUIService() {
     scrollToTopBtnEl = document.getElementById('scrollToTopBtn');
     mainViewTitleEl = document.getElementById('main-view-title');
     activeTagDisplayEl = document.getElementById('active-tag-display');
-    backToGridBtnEl = document.getElementById('back-to-grid-btn'); // Sẽ gắn listener ở script.js
+    backToGridBtnEl = document.getElementById('back-to-grid-btn'); 
     welcomeMessageEl = document.getElementById('welcome-message');
     showAllNotesBtnEl = document.getElementById('show-all-notes-btn');
     showCalendarBtnEl = document.getElementById('show-calendar-btn');
     showTrashBtnEl = document.getElementById('show-trash-btn');
     calendarFiltersCollapsibleEl = document.getElementById('calendar-filters-collapsible');
     toggleCalendarFiltersBtnEl = document.getElementById('toggle-calendar-filters-btn');
-
 
     // Event listeners cho Mobile Sidebar
     if (mobileMenuBtnEl) {
@@ -274,9 +268,11 @@ export function initUIService() {
     if (sidebarOverlayEl) {
         sidebarOverlayEl.addEventListener('click', closeMobileSidebar);
     }
-    if (sidebarEl) { // Đóng sidebar khi click vào item trên mobile
+    if (sidebarEl) { 
         sidebarEl.addEventListener('click', (e) => {
-            if (window.innerWidth <= 768 && e.target.closest('a, button')) {
+            // Đóng sidebar nếu click vào một nút điều hướng chính trên mobile
+            if (window.innerWidth <= 768 && 
+                (e.target.closest('.sidebar-button') || e.target.closest('#add-note-btn'))) {
                 setTimeout(closeMobileSidebar, 150);
             }
         });
@@ -290,12 +286,8 @@ export function initUIService() {
         console.warn("Scroll to top button element not found for UIService.");
     }
     
-    // Listener cho các nút điều hướng chính trong sidebar (sẽ được gắn trong script.js)
-    // Listener cho backToGridBtn (sẽ được gắn trong script.js)
-
     console.log("UI service initialized.");
 }
 
-// Export các hàm getter cho state nếu cần thiết (ví dụ: cho logic back button)
 export function getCurrentUIType() { return currentViewInternal; }
 export function getPreviousUIType() { return previousViewInternal; }
