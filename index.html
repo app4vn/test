@@ -1,322 +1,1585 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghi Chú Cá Nhân</title>
-    <link rel="stylesheet" href="style.css">
-    <link id="prism-theme-link" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>Bản đồ khuôn viên - Phiên bản ổn định</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 5px;
+        box-sizing: border-box;
+        background-color: #f0f0f0;
+        overscroll-behavior: none;
+        min-height: 100vh;
+      }
 
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+      /* --- Search Bar Area --- */
+      .search-area-container {
+        width: 100%;
+        max-width: 900px;
+        padding: 8px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 8px;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 1000;
+        flex-shrink: 0;
+      }
+      #searchInput {
+        width: 100%;
+        padding: 10px;
+        font-size: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      #searchResultsContainer {
+        position: absolute;
+        top: 100%;
+        left: 8px;
+        right: 8px;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 999;
+        display: none;
+      }
+      #searchResultsContainer ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      #searchResultsContainer li {
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+      }
+      #searchResultsContainer li:last-child {
+        border-bottom: none;
+      }
+      #searchResultsContainer li:hover {
+        background-color: #f0f0f0;
+      }
+      #searchResultsContainer .no-results {
+        padding: 10px;
+        color: #777;
+        text-align: center;
+      }
 
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
-    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css"/>
+      .map-container {
+        width: 100%;
+        max-width: 900px;
+        border: 1px solid #007bff;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: white;
+        height: 55vh; /* Chiều cao cố định */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin-bottom: 8px;
+        box-sizing: border-box;
+      }
 
-    <script type="module" src="script.js" defer></script>
-</head>
-<body class="logged-out"> <div id="auth-modal-overlay" class="modal-overlay"></div>
-    <div id="auth-modal" class="modal">
-        <button id="close-auth-modal-btn" class="modal-close-btn">&times;</button>
-        <div id="auth-modal-content">
-             <form id="login-form">
-                <h2>Đăng nhập</h2>
-                <input type="email" id="login-email" placeholder="Email" required>
-                <input type="password" id="login-password" placeholder="Mật khẩu" required>
-                <button type="submit" class="button-primary">Đăng nhập</button>
-                <p id="login-error" class="error-message"></p>
-                <p class="auth-switch-link">Chưa có tài khoản? <span id="show-signup-link">Đăng ký ngay</span></p>
-            </form>
+      svg#campusMap {
+        width: 100%;
+        height: 100%;
+        display: block;
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
+      }
+      svg#campusMap.grabbing {
+        cursor: grabbing;
+      }
 
-            <form id="signup-form" style="display: none;">
-                <h2>Đăng ký</h2>
-                <input type="email" id="signup-email" placeholder="Email" required>
-                <input type="password" id="signup-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" required>
-                <button type="submit" class="button-primary">Đăng ký</button>
-                <p id="signup-error" class="error-message"></p>
-                <p class="auth-switch-link">Đã có tài khoản? <span id="show-login-link">Đăng nhập</span></p>
-            </form>
-        </div>
+      rect.building-rect {
+        fill: transparent;
+        pointer-events: all;
+        stroke: none;
+        transition:
+          stroke 0.2s ease-out,
+          stroke-width 0.2s ease-out;
+      }
+      rect.building-rect.search-highlight {
+        stroke: #00e676 !important;
+        stroke-width: 3.5px !important;
+      }
+
+      .divider-line {
+        stroke: rgba(128, 128, 128, 0.4);
+        stroke-width: 1px;
+        stroke-dasharray: 3, 3;
+        pointer-events: none;
+      }
+
+      /* --- Reset Zoom Button --- */
+      .reset-zoom-icon-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        z-index: 10;
+        background-color: rgba(255, 255, 255, 0.8);
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.2s ease;
+      }
+      .reset-zoom-icon-btn:hover {
+        background-color: rgba(240, 240, 240, 0.9);
+      }
+      .reset-zoom-icon-btn svg {
+        fill: #333;
+      }
+
+      /* --- Bottom Sheet Styles --- */
+      .bottom-sheet-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 1010;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.3s ease-in-out,
+          visibility 0s linear 0.3s;
+      }
+      .bottom-sheet-backdrop.open {
+        opacity: 1;
+        visibility: visible;
+        transition:
+          opacity 0.3s ease-in-out,
+          visibility 0s linear 0s;
+      }
+
+      .bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+        background-color: #ffffff;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+        z-index: 1020;
+        transform: translateY(100%);
+        transition:
+          transform 0.3s ease-in-out,
+          height 0.3s ease-in-out;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .bottom-sheet.open {
+        transform: translateY(0);
+      }
+
+      .bottom-sheet-header {
+        display: flex;
+        justify-content: space-between; /* Đẩy title sang trái, actions sang phải */
+        align-items: center;
+        padding: 10px 16px; /* Giảm padding một chút cho cân đối */
+        border-bottom: 1px solid #e0e0e0;
+        flex-shrink: 0;
+      }
+
+      .bottom-sheet-title {
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #333;
+        margin-right: 10px; /* Tạo khoảng cách với cụm nút actions */
+      }
+
+      .bottom-sheet-actions {
+        /* Nhóm các nút hành động */
+        display: flex;
+        align-items: center;
+        gap: 8px; /* Khoảng cách giữa các nút trong nhóm */
+      }
+
+      .bottom-sheet-action-btn {
+        /* Style chung cho các nút hành động */
+        background: none;
+        border: none;
+        padding: 6px; /* Tăng vùng chạm cho icon */
+        cursor: pointer;
+        color: #757575; /* Màu mặc định cho icon và text button */
+        display: flex; /* Để căn giữa icon SVG bên trong */
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%; /* Bo tròn nút nếu muốn (tùy chọn) */
+        transition: background-color 0.2s ease;
+      }
+      .bottom-sheet-action-btn:hover {
+        color: #333; /* Đổi màu icon/text khi hover */
+        background-color: #f0f0f0; /* Thêm nền nhẹ khi hover (tùy chọn) */
+      }
+      .bottom-sheet-action-btn svg {
+        /* Đảm bảo SVG nhận màu từ button */
+        fill: currentColor;
+        width: 22px; /* Điều chỉnh kích thước icon nếu cần */
+        height: 22px;
+      }
+
+      /* Style riêng cho nút đóng dạng text (nếu vẫn dùng) */
+      .bottom-sheet-action-btn.close-btn {
+        font-size: 24px; /* Cho ký tự '×' */
+        line-height: 1; /* Đảm bảo ký tự '×' không bị lệch */
+        padding: 4px 8px; /* Điều chỉnh padding riêng cho nút text nếu cần */
+      }
+
+      /* Icon mặc định là mũi tên lên, mũi tên xuống ẩn */
+      .bottom-sheet-action-btn.toggle-height-btn .icon-arrow-down {
+        display: none;
+      }
+      /* Khi nút có class 'expanded', hiện mũi tên xuống, ẩn mũi tên lên */
+      .bottom-sheet-action-btn.toggle-height-btn.expanded .icon-arrow-up {
+        display: none;
+      }
+      .bottom-sheet-action-btn.toggle-height-btn.expanded .icon-arrow-down {
+        display: block; /* Hoặc inline, tùy thuộc vào cách SVG được đặt */
+      }
+
+      .bottom-sheet-content {
+        padding: 16px;
+        overflow-y: auto;
+        flex-grow: 1;
+      }
+
+      .bottom-sheet-content .placeholder {
+        color: #999;
+        font-style: italic;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      /* --- App Footer Styles --- */
+      .app-footer {
+        width: 100%;
+        max-width: 900px;
+        padding: 15px 10px;
+        box-sizing: border-box;
+        text-align: center;
+        font-size: 0.85em;
+        color: #888;
+        margin-top: auto;
+        flex-shrink: 0;
+        border-top: 1px solid #e0e0e0;
+        background-color: #f9f9f9;
+      }
+
+      .app-footer p {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="search-area-container">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Tìm tên hoặc mã tòa nhà..."
+      />
+      <div id="searchResultsContainer">
+        <ul id="searchResultsList"></ul>
+      </div>
     </div>
-    <div id="app-container">
-        <header class="app-header">
-            <button id="mobile-menu-btn" class="mobile-menu-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
-                </svg>
-            </button>
-            <h1>Ghi Chú Của Tôi</h1>
-            <div class="user-info">
-                <span id="user-email" class="logged-in-element"></span>
-                <button id="logout-button" class="button-secondary logged-in-element">Đăng xuất</button>
-                <button id="show-login-modal-btn" class="button-secondary logged-out-element">Đăng nhập</button>
-                <button id="show-signup-modal-btn" class="button-primary logged-out-element">Đăng ký</button>
-            </div>
-        </header>
 
-        <div class="main-content has-sidebar">
-            <aside id="sidebar" class="sidebar">
-                <button id="add-note-btn" class="button-primary full-width" title="Thêm Ghi Chú Mới">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-lg sidebar-button-icon" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
-                    </svg>
-                    <span class="sidebar-button-text">Thêm Ghi Chú Mới</span>
-                </button>
-                <hr class="sidebar-section-divider">
-                <div class="sidebar-section"> <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú...">
-                </div>
-                <hr class="sidebar-section-divider">
-                <div class="sidebar-section"> <h2 class="sidebar-section-title">Tags</h2>
-                    <div id="tags-list-container"></div>
-                </div>
-                <hr class="sidebar-section-divider">
-                 <button id="show-all-notes-btn" class="sidebar-button" title="Tất cả">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-collection sidebar-button-icon" viewBox="0 0 16 16">
-                        <path d="M2.5 3.5a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm2-2a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1h-7zM0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 13V6a1.5 1.5 0 0 0-1.5-1.5h-13A1.5 1.5 0 0 0 0 6v7zm1.5.5A.5.5 0 0 1 1 13V6a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-13z"/>
-                    </svg>
-                     <span class="sidebar-button-text">Tất cả</span>
-                </button>
-                 <button id="show-calendar-btn" class="sidebar-button" title="Lịch">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-week sidebar-button-icon" viewBox="0 0 16 16">
-                         <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z"/>
-                         <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
-                     </svg>
-                     <span class="sidebar-button-text">Lịch</span>
-                 </button>
-                <button id="show-trash-btn" class="sidebar-button" title="Thùng rác">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3 sidebar-button-icon" viewBox="0 0 16 16">
-                        <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66H14.5a.5.5 0 0 0 0-1H11Zm-1 1.007H6.5V13h3V3.5ZM5.036 3.5h5.928L10.202 13H5.797L5.036 3.5Z"/>
-                    </svg>
-                    <span class="sidebar-button-text">Thùng rác</span>
-                </button>
-                <div class="sidebar-settings sidebar-section"> <hr class="sidebar-section-divider">
-                    <h2 class="sidebar-section-title">Giao diện</h2>
-                    <div class="theme-selector">
-                         <h3 class="sidebar-subsection-title">Chủ đề</h3>
-                         <div class="theme-options">
-                            <button data-theme="light" class="theme-button" title="Giao diện Sáng">Sáng</button>
-                            <button data-theme="dark" class="theme-button" title="Giao diện Tối">Tối</button>
-                            <button data-theme="gruvbox-light" class="theme-button" title="Giao diện Gruvbox Sáng">Gruvbox</button>
-                            <button data-theme="dracula" class="theme-button" title="Giao diện Dracula">Dracula</button>
-                            <button data-theme="solarized-light" class="theme-button" title="Giao diện Solarized Sáng">Solarized</button>
-                         </div>
-                    </div>
-                    <div class="accent-color-selector">
-                        <h3 class="sidebar-subsection-title">Màu nhấn</h3>
-                        <div class="accent-color-options">
-                            <button class="accent-color-button" data-accent="#007bff" style="background-color: #007bff;" title="Xanh dương (Mặc định)"></button>
-                            <button class="accent-color-button" data-accent="#198754" style="background-color: #198754;" title="Xanh lá"></button>
-                            <button class="accent-color-button" data-accent="#dc3545" style="background-color: #dc3545;" title="Đỏ"></button>
-                            <button class="accent-color-button" data-accent="#ffc107" style="background-color: #ffc107;" title="Vàng"></button>
-                            <button class="accent-color-button" data-accent="#fd7e14" style="background-color: #fd7e14;" title="Cam"></button>
-                            <button class="accent-color-button" data-accent="#6f42c1" style="background-color: #6f42c1;" title="Tím"></button>
-                        </div>
-                    </div>
-                    <div class="font-selector">
-                        <h3 class="sidebar-subsection-title">Font chữ Nội dung</h3>
-                        <select id="font-select">
-                            <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'">Hệ thống (Mặc định)</option>
-                            <option value="'Lora', serif">Lora (Serif)</option>
-                            <option value="'Roboto', sans-serif">Roboto (Sans-serif)</option>
-                            <option value="'Open Sans', sans-serif">Open Sans (Sans-serif)</option>
-                            <option value="'Merriweather', serif">Merriweather (Serif)</option>
-                        </select>
-                    </div>
-                </div>
-            </aside>
+    <div class="map-container">
+      <svg
+        id="campusMap"
+        viewBox="5 5 960 900"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <image
+          href="https://app4vn.github.io/hustmap/anh-nen-goc.jpg"
+          x="0"
+          y="0"
+          width="970"
+          height="910"
+          onerror="this.onerror=null; this.src='https://placehold.co/970x910/cccccc/ffffff?text=Map+Image+Not+Found';"
+        />
+        <line class="divider-line" x1="485" y1="0" x2="485" y2="910" />
+        <line class="divider-line" x1="0" y1="455" x2="970" y2="455" />
 
-            <main id="content-area" class="content-area">
-                <div id="welcome-message" class="logged-out-element" style="text-align: center; margin-top: 50px; color: var(--text-secondary);">
-                    <h2>Chào mừng đến với Ghi Chú Cá Nhân!</h2>
-                    <p>Vui lòng <span class="auth-link" onclick="document.getElementById('show-login-modal-btn').click();">Đăng nhập</span> hoặc <span class="auth-link" onclick="document.getElementById('show-signup-modal-btn').click();">Đăng ký</span> để bắt đầu.</p>
-                </div>
-
-                <div id="notes-grid-view" class="logged-in-element">
-                    <div id="urgent-task-banner" class="urgent-task-banner" style="display: none;">
-                        </div>
-                    <div class="grid-view-header">
-                        <h2 id="main-view-title">Tất cả <span id="active-tag-display"></span></h2>
-                        <button id="filter-notes-only-btn" class="button-secondary" title="Lọc chỉ ghi chú (không có công việc)" style="margin-left: 15px; display: none;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sticky" viewBox="0 0 16 16" style="margin-right: 6px; vertical-align: text-bottom;">
-                                <path d="M2.5 1A1.5 1.5 0 0 0 1 2.5v11A1.5 1.5 0 0 0 2.5 15h6.086a1.5 1.5 0 0 0 1.06-.44l4.915-4.914A1.5 1.5 0 0 0 15 8.586V2.5A1.5 1.5 0 0 0 13.5 1h-11zM2 2.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 .5.5V8l-4 4H2.5a.5.5 0 0 1-.5-.5v-9z"/>
-                                <path d="M5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5z"/>
-                            </svg>
-                            Ghi chú
-                        </button>
-                        <button id="filter-todo-notes-btn" class="button-secondary" title="Lọc ghi chú có công việc" style="margin-left: 10px; display: none;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2-square" viewBox="0 0 16 16" style="margin-right: 6px; vertical-align: text-bottom;">
-                                <path d="M3 14.5A1.5 1.5 0 0 1 1.5 13V3A1.5 1.5 0 0 1 3 1.5h8A1.5 1.5 0 0 1 12.5 3v1.146a.5.5 0 0 1-1 0V3a.5.5 0 0 0-.5-.5H3a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5h2.646a.5.5 0 0 1 0 1H3z"/>
-                                <path d="m8.354 10.354 7-7a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0z"/>
-                            </svg>
-                            Công việc
-                        </button>
-                        <div class="sort-options">
-                            <label for="sort-select">Sắp xếp theo:</label>
-                            <select id="sort-select">
-                                <option value="updatedAt_desc">Ngày cập nhật (Mới nhất)</option>
-                                <option value="updatedAt_asc">Ngày cập nhật (Cũ nhất)</option>
-                                <option value="title_asc">Tiêu đề (A-Z)</option>
-                                <option value="title_desc">Tiêu đề (Z-A)</option>
-                                <option value="deadline_asc">Hạn chót gần nhất</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="notes-list-container">
-                        <p>Đang tải ghi chú...</p>
-                    </div>
-                    <button id="fab-add-note-btn" class="fab button-primary logged-in-element" title="Tạo ghi chú mới">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <div id="calendar-view" style="display: none;" class="logged-in-element">
-                    <div class="calendar-view-header">
-                        <h2>Lịch Công Việc & Sự kiện</h2>
-                        <button id="toggle-calendar-filters-btn" class="button-secondary" aria-expanded="false" aria-controls="calendar-filters-collapsible">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-filter" viewBox="0 0 16 16" style="margin-right: 5px; vertical-align: text-bottom;">
-                                <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/>
-                            </svg>
-                            Bộ lọc
-                            <span id="calendar-filter-indicator" style="display:none; font-size: 0.8em; margin-left: 5px;"></span>
-                        </button>
-                    </div>
-
-                    <div id="calendar-filters-collapsible" class="calendar-filters-collapsible" style="display: none;">
-                        <div class="calendar-filter-options-inner">
-                            <div>
-                                <label for="calendar-tag-filter">Tag:</label>
-                                <select id="calendar-tag-filter">
-                                    <option value="">Tất cả Tags</option>
-                                    </select>
-                            </div>
-                            <div>
-                                <label for="calendar-status-filter">Trạng thái:</label>
-                                <select id="calendar-status-filter">
-                                    <option value="">Tất cả</option>
-                                    <option value="uncompleted">Chưa hoàn thành</option>
-                                    <option value="completed">Đã hoàn thành</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="calendar-priority-filter">Ưu tiên:</label>
-                                <select id="calendar-priority-filter">
-                                    <option value="">Tất cả</option>
-                                    <option value="high">Cao</option>
-                                    <option value="medium">Trung bình</option>
-                                    <option value="low">Thấp</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="calendar-filters-actions">
-                            <button id="apply-calendar-filters-btn" class="button-primary">Áp dụng</button>
-                            <button id="close-calendar-filters-btn" class="button-secondary">Đóng</button>
-                        </div>
-                    </div>
-
-                    <div id="calendar-container"></div>
-                </div>
-                <div id="trash-view" style="display: none;" class="logged-in-element">
-                    <div class="grid-view-header">
-                        <h2>Ghi chú trong Thùng rác</h2>
-                    </div>
-                    <div id="trash-list-container">
-                        <p>Thùng rác trống.</p>
-                    </div>
-                </div>
-
-                <div id="note-detail-view" style="display: none;" class="logged-in-element">
-                     <button id="back-to-grid-btn" class="button-secondary back-button">&larr; Quay lại</button>
-                     <button id="pin-note-detail-btn" class="pin-button" title="Ghim/Bỏ ghim ghi chú">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pin-angle" viewBox="0 0 16 16">
-                             <path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a5.927 5.927 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707-.195-.195.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a5.922 5.922 0 0 1 1.013.16l3.134-3.133a2.772 2.772 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146zm-3.27 1.96a.5.5 0 0 1 0 .707L2.874 8.874a.5.5 0 1 1-.707-.707l3.687-3.687a.5.5 0 0 1 .707 0z"/>
-                         </svg>
-                     </button>
-                     <h2 id="note-detail-title"></h2>
-                     <div id="note-detail-tags" class="tags-display"></div>
-                     <div id="note-detail-content" class="content-display"></div>
-                     <pre id="note-detail-code" style="display: none;"><code class="language-plaintext"></code></pre>
-                     <div id="note-detail-todos-container" style="display: none;">
-                         <h3>Danh sách công việc:</h3>
-                         <ul id="note-detail-todos-list"></ul>
-                         <div id="note-detail-todos-progress" style="margin-top: 10px;"></div>
-                     </div>
-                     <div id="note-detail-actions">
-                          <button id="edit-note-btn" class="button-secondary">Sửa</button>
-                          <button id="delete-note-btn" class="button-danger">Xóa</button>
-                          <button id="copy-code-btn" class="button-secondary" style="display: none;">Copy Code</button>
-                     </div>
-                </div>
-
-                <div id="note-editor-view" style="display: none;" class="logged-in-element">
-                    <h2 id="editor-title">Soạn thảo Ghi chú</h2>
-                    <input type="hidden" id="note-id-input">
-                    <input type="text" id="note-title-input" placeholder="Tiêu đề" required>
-                    <textarea id="note-content-input" placeholder="Nội dung ghi chú..." rows="10" required></textarea>
-                    <div class="tag-input-container">
-                        <input type="text" id="note-tags-input" placeholder="Tags (cách nhau bằng dấu phẩy)">
-                        <div id="tag-suggestions" class="tag-suggestions-list" style="display: none;"></div>
-                    </div>
-                    <div class="event-date-input-container">
-                        <label for="note-event-date">Ngày sự kiện (tùy chọn):</label>
-                        <input type="date" id="note-event-date">
-                    </div>
-                    <div class="code-options">
-                        <input type="checkbox" id="note-is-code-checkbox">
-                        <label for="note-is-code-checkbox">Đây là code?</label>
-                        <select id="note-language-select" style="display: none;">
-                            <option value="plaintext">Plain Text</option>
-                            <option value="markup">Markup (HTML/XML/SVG)</option>
-                            <option value="css">CSS</option>
-                            <option value="javascript">JavaScript (JS)</option>
-                            <option value="python">Python</option>
-                            <option value="java">Java</option>
-                            <option value="c">C</option>
-                            <option value="cpp">C++</option>
-                            <option value="csharp">C#</option>
-                            <option value="php">PHP</option>
-                            <option value="ruby">Ruby</option>
-                            <option value="go">Go</option>
-                            <option value="swift">Swift</option>
-                            <option value="kotlin">Kotlin</option>
-                            <option value="sql">SQL</option>
-                            <option value="json">JSON</option>
-                            <option value="yaml">YAML</option>
-                            <option value="bash">Bash/Shell</option>
-                            <option value="markdown">Markdown</option>
-                            <option value="typescript">TypeScript</option>
-                            <option value="jsx">JSX (React)</option>
-                            <option value="tsx">TSX (React)</option>
-                        </select>
-                    </div>
-
-                    <div id="note-editor-todos-container" style="margin-top: 20px;">
-                        <h3>Danh sách công việc (<label for="enable-todo-checkbox">Bật/Tắt</label> <input type="checkbox" id="enable-todo-checkbox">)</h3>
-                        <ul id="note-editor-todos-list" style="list-style: none; padding-left: 0;"></ul>
-                        <button type="button" id="add-todo-editor-item-btn" class="button-secondary" style="margin-top: 10px;">Thêm công việc</button>
-                    </div>
-
-                    <div class="editor-actions">
-                        <button id="save-note-btn" class="button-primary">Lưu Ghi Chú</button>
-                        <button id="cancel-edit-btn" class="button-secondary">Hủy</button>
-                    </div>
-                     <p id="editor-error" class="error-message"></p>
-                </div>
-            </main>
-        </div>
-
-        <div id="sidebar-overlay"></div>
-
+        <rect
+          class="building-rect"
+          id="toaC2"
+          x="140"
+          y="320"
+          width="40"
+          height="120"
+        />
+        <rect
+          class="building-rect"
+          id="toaC9"
+          x="60"
+          y="450"
+          width="130"
+          height="30"
+        />
+        <rect
+          class="building-rect"
+          id="toaHoithao"
+          x="140"
+          y="270"
+          width="40"
+          height="40"
+        />
+        <rect
+          class="building-rect"
+          id="toaC1"
+          x="150"
+          y="200"
+          width="270"
+          height="60"
+        />
+        <rect
+          class="building-rect"
+          id="toaC3"
+          x="400"
+          y="280"
+          width="100"
+          height="30"
+        />
+        <rect
+          class="building-rect"
+          id="toaC4"
+          x="395"
+          y="350"
+          width="105"
+          height="30"
+        />
+        <rect
+          class="building-rect"
+          id="toaC5"
+          x="395"
+          y="420"
+          width="105"
+          height="30"
+        />
+        <rect
+          class="building-rect"
+          id="toaC10"
+          x="397"
+          y="480"
+          width="100"
+          height="30"
+        />
+        <rect
+          class="building-rect"
+          id="toaC7"
+          x="540"
+          y="410"
+          width="100"
+          height="100"
+        />
+        <rect
+          class="building-rect"
+          id="toaThuvien"
+          x="440"
+          y="570"
+          width="90"
+          height="120"
+        />
+        <rect
+          class="building-rect"
+          id="toaHotien"
+          x="250"
+          y="690"
+          width="150"
+          height="110"
+        />
+        <rect
+          class="building-rect"
+          id="toaD6"
+          x="100"
+          y="680"
+          width="120"
+          height="30"
+        />
+        <rect
+          class="building-rect"
+          id="toaD8"
+          x="100"
+          y="750"
+          width="120"
+          height="30"
+        />
+        <rect
+          class="building-rect"
+          id="toaD2a"
+          x="80"
+          y="560"
+          width="70"
+          height="50"
+        />
+        <rect
+          class="building-rect"
+          id="toaD2b"
+          x="160"
+          y="560"
+          width="70"
+          height="50"
+        />
+        <rect
+          class="building-rect"
+          id="toaVietduc"
+          x="240"
+          y="560"
+          width="70"
+          height="50"
+        />
+        <rect
+          class="building-rect"
+          id="toaD2d"
+          x="320"
+          y="560"
+          width="80"
+          height="50"
+        />
+        <rect
+          class="building-rect"
+          id="toaC3b"
+          x="540"
+          y="230"
+          width="90"
+          height="100"
+        />
+        <rect
+          class="building-rect"
+          id="toaC1b"
+          x="460"
+          y="210"
+          width="50"
+          height="50"
+        />
+        <rect
+          class="building-rect"
+          id="toaD3"
+          x="580"
+          y="560"
+          width="70"
+          height="40"
+        />
+        <rect
+          class="building-rect"
+          id="toaD5"
+          x="580"
+          y="620"
+          width="70"
+          height="40"
+        />
+        <rect
+          class="building-rect"
+          id="toaD35"
+          x="660"
+          y="560"
+          width="40"
+          height="100"
+        />
+        <rect
+          class="building-rect"
+          id="toaB6"
+          x="750"
+          y="300"
+          width="100"
+          height="30"
+        />
+        <rect
+          class="building-rect"
+          id="toaKtx"
+          x="750"
+          y="345"
+          width="100"
+          height="65"
+        />
+        <rect
+          class="building-rect"
+          id="toaB7"
+          x="750"
+          y="420"
+          width="100"
+          height="30"
+        />
+        <rect
+          class="building-rect"
+          id="toaB8"
+          x="750"
+          y="470"
+          width="110"
+          height="30"
+        />
+        <rect
+          class="building-rect"
+          id="toaB5"
+          x="870"
+          y="310"
+          width="80"
+          height="40"
+        />
+        <rect
+          class="building-rect"
+          id="toaB9"
+          x="870"
+          y="370"
+          width="80"
+          height="40"
+        />
+        <rect
+          class="building-rect"
+          id="toaB1"
+          x="780"
+          y="565"
+          width="130"
+          height="130"
+        />
+        <rect
+          class="building-rect"
+          id="toaD4"
+          x="20"
+          y="695"
+          width="50"
+          height="45"
+        />
+        <rect
+          class="building-rect"
+          id="toaVuonhoa"
+          x="230"
+          y="280"
+          width="110"
+          height="140"
+        />
+        <rect
+          class="building-rect"
+          id="toaD7"
+          x="610"
+          y="670"
+          width="60"
+          height="60"
+        />
+      </svg>
+      <button
+        id="resetZoomIconBtn"
+        class="reset-zoom-icon-btn"
+        title="Xem toàn bộ bản đồ"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          width="20px"
+          height="20px"
+        >
+          <path d="M0 0h24v24H0z" fill="none" />
+          <path
+            d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"
+          />
+        </svg>
+      </button>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <div id="bottomSheetBackdrop" class="bottom-sheet-backdrop"></div>
 
-    <button id="scrollToTopBtn" title="Cuộn lên đầu trang">&uarr;</button>
+    <div id="bottomSheet" class="bottom-sheet">
+      <div class="bottom-sheet-header">
+        <span id="bottomSheetTitle" class="bottom-sheet-title"
+          >Thông tin tòa nhà</span
+        >
+        <div class="bottom-sheet-actions">
+          <button
+            id="toggleBottomSheetHeightBtn"
+            class="bottom-sheet-action-btn toggle-height-btn"
+            aria-label="Mở rộng"
+          >
+            <svg
+              class="icon-arrow-up"
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 0 24 24"
+              width="24px"
+              fill="currentColor"
+            >
+              <path d="M0 0h24v24H0V0z" fill="none" />
+              <path
+                d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"
+              />
+            </svg>
+            <svg
+              class="icon-arrow-down"
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 0 24 24"
+              width="24px"
+              fill="currentColor"
+              style="display: none"
+            >
+              <path d="M0 0h24v24H0V0z" fill="none" />
+              <path
+                d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
+              />
+            </svg>
+          </button>
+          <button
+            id="closeBottomSheetBtn"
+            class="bottom-sheet-action-btn close-btn"
+            aria-label="Đóng"
+          >
+            &times;
+          </button>
+        </div>
+      </div>
+      <div id="bottomSheetContent" class="bottom-sheet-content">
+        <p class="placeholder">
+          Chọn một tòa nhà trên bản đồ hoặc từ kết quả tìm kiếm để xem thông tin
+          chi tiết.
+        </p>
+      </div>
+    </div>
 
-    </body>
+    <footer class="app-footer">
+      <p>&copy; 2025 Bản đồ Khuôn viên. Phát triển bởi MinhVTV4.</p>
+    </footer>
+
+    <script>
+      // DOM Elements
+      const campusMap = document.getElementById("campusMap");
+      const searchInput = document.getElementById("searchInput");
+      const searchResultsContainer = document.getElementById(
+        "searchResultsContainer",
+      );
+      const searchResultsList = document.getElementById("searchResultsList");
+      const resetZoomBtn = document.getElementById("resetZoomIconBtn");
+
+      // Bottom Sheet DOM Elements
+      const bottomSheet = document.getElementById("bottomSheet");
+      const bottomSheetBackdrop = document.getElementById("bottomSheetBackdrop");
+      const closeBottomSheetBtn = document.getElementById("closeBottomSheetBtn");
+      const bottomSheetContent = document.getElementById("bottomSheetContent");
+      const bottomSheetTitle = document.getElementById("bottomSheetTitle");
+      const toggleBottomSheetHeightBtn = document.getElementById(
+        "toggleBottomSheetHeightBtn",
+      ); // Nút gạt chiều cao
+
+      // SVG and Zoom Constants
+      const SVG_VIEWBOX_X = 5;
+      const SVG_VIEWBOX_Y = 5;
+      const SVG_IMAGE_FULL_WIDTH = 970;
+      const SVG_IMAGE_FULL_HEIGHT = 910;
+      const SVG_ORIGINAL_WIDTH = SVG_IMAGE_FULL_WIDTH - 2 * SVG_VIEWBOX_X;
+      const SVG_ORIGINAL_HEIGHT = SVG_IMAGE_FULL_HEIGHT - 2 * SVG_VIEWBOX_Y;
+      const SVG_ASPECT_RATIO = SVG_ORIGINAL_WIDTH / SVG_ORIGINAL_HEIGHT;
+
+      let currentViewBox = {
+        x: SVG_VIEWBOX_X,
+        y: SVG_VIEWBOX_Y,
+        width: SVG_ORIGINAL_WIDTH,
+        height: SVG_ORIGINAL_HEIGHT,
+      };
+      const ZOOM_FACTOR = 1.2;
+      const MIN_ZOOM_WIDTH = 30;
+      const MAX_ZOOM_WIDTH = SVG_ORIGINAL_WIDTH * 3;
+
+      // Interaction State Variables
+      let isPointerDown = false;
+      let pointerStartCoords = { x: 0, y: 0 };
+      let viewBoxOnPointerDown = { x: 0, y: 0 };
+      let initialPinchDistance = 0;
+      let isPinching = false;
+      let tapStart = { x: 0, y: 0, time: 0 };
+      const TAP_THRESHOLD_MS = 250;
+      const TAP_MOVE_THRESHOLD_PX = 10;
+
+      // Timers and Animation State
+      let debounceTimer;
+      let highlightTimeout = null;
+      let autoZoomOutTimer = null;
+      let isAnimatingViewBox = false;
+      let animationFrameId = null;
+      let currentHighlightedRect = null;
+
+      // --- Bottom Sheet State & Constants ---
+      let isBottomSheetExpanded = false; // Theo dõi trạng thái mở rộng/thu gọn
+      const BOTTOM_SHEET_FULL_HEIGHT_VH = 90; // Chiều cao "Full" là 90% viewport height
+      const BOTTOM_SHEET_PEEK_MAX_VH = 70; // Chiều cao "Peek" tối đa 70% viewport height
+      const BOTTOM_SHEET_PEEK_MIN_PX = 150; // Chiều cao "Peek" tối thiểu 150px
+      const BOTTOM_SHEET_ANIMATION_DURATION = 300; // Phù hợp với transition CSS
+
+      // Search and Animation Constants
+      const AUTO_ZOOM_OUT_INITIAL_WAIT = 1800;
+      const INITIAL_ZOOM_TO_BUILDING_FACTOR = 0.5;
+      const OVERVIEW_ZOOM_OUT_FACTOR = 4.0;
+      const ANIMATION_DURATION = 700;
+      const HIGHLIGHT_DURATION_AFTER_ANIMATION = 2500;
+
+      // --- Utility Functions ---
+      function cancelAllAutomatedSequences() {
+        clearTimeout(autoZoomOutTimer);
+        if (isAnimatingViewBox) {
+          cancelAnimationFrame(animationFrameId);
+          isAnimatingViewBox = false;
+        }
+      }
+      function clearSearchHighlightAndTimers() {
+        if (currentHighlightedRect) {
+          currentHighlightedRect.classList.remove("search-highlight");
+          currentHighlightedRect = null;
+        }
+        clearTimeout(highlightTimeout);
+      }
+      function setMapViewBox(vb, calledFromAnimation = false) {
+        if (!calledFromAnimation) {
+          cancelAllAutomatedSequences();
+          if (!isAnimatingViewBox) clearSearchHighlightAndTimers();
+        }
+        currentViewBox = { ...vb };
+        const panLimitFactor = 0.25;
+        const minPanX = SVG_VIEWBOX_X - SVG_ORIGINAL_WIDTH * panLimitFactor;
+        const maxPanX =
+          SVG_VIEWBOX_X +
+          SVG_ORIGINAL_WIDTH * (1 + panLimitFactor) -
+          currentViewBox.width;
+        const minPanY = SVG_VIEWBOX_Y - SVG_ORIGINAL_HEIGHT * panLimitFactor;
+        const maxPanY =
+          SVG_VIEWBOX_Y +
+          SVG_ORIGINAL_HEIGHT * (1 + panLimitFactor) -
+          currentViewBox.height;
+        currentViewBox.x = Math.max(minPanX, Math.min(currentViewBox.x, maxPanX));
+        currentViewBox.y = Math.max(minPanY, Math.min(currentViewBox.y, maxPanY));
+        campusMap.setAttribute(
+          "viewBox",
+          `${currentViewBox.x} ${currentViewBox.y} ${currentViewBox.width} ${currentViewBox.height}`,
+        );
+      }
+      function screenToSVGCoords(screenX, screenY) {
+        const pt = campusMap.createSVGPoint();
+        pt.x = screenX;
+        pt.y = screenY;
+        const CTM = campusMap.getScreenCTM();
+        return CTM ? pt.matrixTransform(CTM.inverse()) : null;
+      }
+      function easeInOutQuad(t) {
+        return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      }
+      function animateViewBox(targetVb, duration, onCompleteCallback = null) {
+        if (isAnimatingViewBox) cancelAnimationFrame(animationFrameId);
+        isAnimatingViewBox = true;
+        const startVb = { ...currentViewBox };
+        const startTime = performance.now();
+        function animationStep(currentTime) {
+          if (!isAnimatingViewBox) return;
+          const elapsedTime = currentTime - startTime;
+          let progress = Math.min(elapsedTime / duration, 1);
+          const easedProgress = easeInOutQuad(progress);
+          const interpolatedVb = {
+            x: startVb.x + (targetVb.x - startVb.x) * easedProgress,
+            y: startVb.y + (targetVb.y - startVb.y) * easedProgress,
+            width: startVb.width + (targetVb.width - startVb.width) * easedProgress,
+            height:
+              startVb.height + (targetVb.height - startVb.height) * easedProgress,
+          };
+          setMapViewBox(interpolatedVb, true);
+          if (progress < 1) {
+            animationFrameId = requestAnimationFrame(animationStep);
+          } else {
+            isAnimatingViewBox = false;
+            setMapViewBox(targetVb, true);
+            if (typeof onCompleteCallback === "function") onCompleteCallback();
+          }
+        }
+        animationFrameId = requestAnimationFrame(animationStep);
+      }
+
+      function zoomViewBox(zoomRatio, pivotSVG) {
+        cancelAllAutomatedSequences();
+        clearSearchHighlightAndTimers();
+        let newWidth = currentViewBox.width * zoomRatio;
+        newWidth = Math.max(MIN_ZOOM_WIDTH, Math.min(newWidth, MAX_ZOOM_WIDTH));
+        if (
+          newWidth === currentViewBox.width &&
+          currentViewBox.width === MIN_ZOOM_WIDTH &&
+          zoomRatio > 1
+        ) {
+          // Already at min zoom and trying to zoom in further (should not happen with current logic but good for safety)
+        } else if (
+          newWidth === currentViewBox.width &&
+          currentViewBox.width === MAX_ZOOM_WIDTH &&
+          zoomRatio < 1
+        ) {
+          // Already at max zoom and trying to zoom out further (should not happen)
+        } else if (newWidth === currentViewBox.width) return; // No change in zoom level
+
+        let newHeight = newWidth / SVG_ASPECT_RATIO;
+        let newX, newY;
+
+        if (pivotSVG) {
+          newX =
+            pivotSVG.x -
+            (pivotSVG.x - currentViewBox.x) * (newWidth / currentViewBox.width);
+          newY =
+            pivotSVG.y -
+            (pivotSVG.y - currentViewBox.y) * (newHeight / currentViewBox.height);
+        } else {
+          // Zoom to center if no pivot
+          newX = currentViewBox.x + (currentViewBox.width - newWidth) / 2;
+          newY = currentViewBox.y + (currentViewBox.height - newHeight) / 2;
+        }
+        setMapViewBox({ x: newX, y: newY, width: newWidth, height: newHeight });
+      }
+
+      // --- Mouse Event Handlers ---
+      campusMap.addEventListener("mousedown", (event) => {
+        cancelAllAutomatedSequences();
+        clearSearchHighlightAndTimers();
+        if (event.button !== 0) return; // Only main button (left-click)
+        isPointerDown = true;
+        pointerStartCoords = { x: event.clientX, y: event.clientY };
+        viewBoxOnPointerDown = { ...currentViewBox };
+        campusMap.classList.add("grabbing");
+        tapStart = { x: event.clientX, y: event.clientY, time: Date.now() };
+      });
+
+      campusMap.addEventListener("mousemove", (event) => {
+        if (!isPointerDown || isPinching || isAnimatingViewBox) return;
+        const dxScreen = event.clientX - pointerStartCoords.x;
+        const dyScreen = event.clientY - pointerStartCoords.y;
+
+        const clientRect = campusMap.getBoundingClientRect();
+        if (clientRect.width === 0 || clientRect.height === 0) return; // Avoid division by zero if map is not visible
+
+        const scaleX = currentViewBox.width / clientRect.width;
+        const scaleY = currentViewBox.height / clientRect.height;
+
+        const newX = viewBoxOnPointerDown.x - dxScreen * scaleX;
+        const newY = viewBoxOnPointerDown.y - dyScreen * scaleY;
+
+        setMapViewBox({
+          x: newX,
+          y: newY,
+          width: currentViewBox.width,
+          height: currentViewBox.height,
+        });
+      });
+
+      function stopMousePan() {
+        if (isPointerDown && !isPinching) {
+          isPointerDown = false;
+          campusMap.classList.remove("grabbing");
+        }
+      }
+      campusMap.addEventListener("mouseup", stopMousePan);
+      campusMap.addEventListener("mouseleave", stopMousePan);
+      window.addEventListener("blur", stopMousePan); // Stop panning if window loses focus
+
+      campusMap.addEventListener("wheel", (event) => {
+        event.preventDefault();
+        cancelAllAutomatedSequences();
+        clearSearchHighlightAndTimers();
+        const pivot = screenToSVGCoords(event.clientX, event.clientY);
+        if (!pivot) return;
+        const zoomRatio = event.deltaY < 0 ? 1 / ZOOM_FACTOR : ZOOM_FACTOR;
+        zoomViewBox(zoomRatio, pivot);
+      });
+
+      // --- Touch Event Handlers ---
+      function getTouchDistance(t1, t2) {
+        return Math.sqrt(
+          Math.pow(t1.clientX - t2.clientX, 2) + Math.pow(t1.clientY - t2.clientY, 2),
+        );
+      }
+      function getTouchMidpoint(t1, t2) {
+        return { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
+      }
+
+      campusMap.addEventListener(
+        "touchstart",
+        (event) => {
+          cancelAllAutomatedSequences();
+          clearSearchHighlightAndTimers();
+          event.preventDefault(); // Prevent default touch actions like scrolling page
+          isPointerDown = true;
+          campusMap.classList.add("grabbing");
+
+          if (event.touches.length === 1) {
+            const touch = event.touches[0];
+            pointerStartCoords = { x: touch.clientX, y: touch.clientY };
+            viewBoxOnPointerDown = { ...currentViewBox };
+            tapStart = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+            isPinching = false;
+          } else if (event.touches.length === 2) {
+            isPinching = true;
+            initialPinchDistance = getTouchDistance(
+              event.touches[0],
+              event.touches[1],
+            );
+            viewBoxOnPointerDown = { ...currentViewBox }; // Store viewBox at pinch start
+          }
+        },
+        { passive: false },
+      );
+
+      campusMap.addEventListener(
+        "touchmove",
+        (event) => {
+          event.preventDefault(); // Prevent default touch actions
+          if (!isPointerDown || isAnimatingViewBox) return;
+
+          if (isPinching && event.touches.length === 2) {
+            const currentPinchDistance = getTouchDistance(
+              event.touches[0],
+              event.touches[1],
+            );
+            if (initialPinchDistance === 0) {
+                // Safety check, should be set in touchstart
+                initialPinchDistance = currentPinchDistance;
+                viewBoxOnPointerDown = { ...currentViewBox };
+                return;
+            }
+
+            const zoomRatio = currentPinchDistance / initialPinchDistance;
+            const screenMidpoint = getTouchMidpoint(
+              event.touches[0],
+              event.touches[1],
+            );
+            const svgMidpoint = screenToSVGCoords(screenMidpoint.x, screenMidpoint.y);
+
+            if (svgMidpoint) {
+              let newWidth = viewBoxOnPointerDown.width / zoomRatio; // Use viewBox at pinch start
+              newWidth = Math.max(MIN_ZOOM_WIDTH, Math.min(newWidth, MAX_ZOOM_WIDTH));
+              let newHeight = newWidth / SVG_ASPECT_RATIO;
+
+              let newViewBoxX =
+                svgMidpoint.x -
+                (svgMidpoint.x - viewBoxOnPointerDown.x) *
+                  (newWidth / viewBoxOnPointerDown.width);
+              let newViewBoxY =
+                svgMidpoint.y -
+                (svgMidpoint.y - viewBoxOnPointerDown.y) *
+                  (newHeight / viewBoxOnPointerDown.height);
+
+              setMapViewBox({
+                x: newViewBoxX,
+                y: newViewBoxY,
+                width: newWidth,
+                height: newHeight,
+              });
+            }
+          } else if (!isPinching && event.touches.length === 1) {
+            const touch = event.touches[0];
+            const dxScreen = touch.clientX - pointerStartCoords.x;
+            const dyScreen = touch.clientY - pointerStartCoords.y;
+
+            const clientRect = campusMap.getBoundingClientRect();
+            if (clientRect.width === 0 || clientRect.height === 0) return;
+
+            const scaleX = currentViewBox.width / clientRect.width;
+            const scaleY = currentViewBox.height / clientRect.height;
+
+            const newX = viewBoxOnPointerDown.x - dxScreen * scaleX;
+            const newY = viewBoxOnPointerDown.y - dyScreen * scaleY;
+            setMapViewBox({
+              x: newX,
+              y: newY,
+              width: currentViewBox.width,
+              height: currentViewBox.height,
+            });
+          }
+        },
+        { passive: false },
+      );
+
+      campusMap.addEventListener("touchend", (event) => {
+        // Check for tap on a building
+        if (
+          !isPinching && // Not a pinch
+          event.changedTouches.length === 1 && // Single touch ended
+          isPointerDown && // Was a pointer down event
+          !isAnimatingViewBox // Not currently animating
+        ) {
+          const touch = event.changedTouches[0];
+          const timeElapsed = Date.now() - tapStart.time;
+          const distMoved = Math.sqrt(
+            Math.pow(touch.clientX - tapStart.x, 2) +
+              Math.pow(touch.clientY - tapStart.y, 2),
+          );
+
+          if (timeElapsed < TAP_THRESHOLD_MS && distMoved < TAP_MOVE_THRESHOLD_PX) {
+            // It's a tap!
+            let targetElement = document.elementFromPoint(tapStart.x, tapStart.y); // Use original tap coordinates
+            if (targetElement && targetElement.closest) {
+                targetElement = targetElement.closest(".building-rect"); // Find the closest building-rect ancestor
+                if (targetElement) {
+                    const buildingId = targetElement.id;
+                    if (buildingId && info[buildingId]) {
+                        cancelAllAutomatedSequences();
+                        clearSearchHighlightAndTimers();
+                        targetElement.classList.add("search-highlight");
+                        currentHighlightedRect = targetElement;
+                        openBottomSheet(info[buildingId]);
+                        searchResultsContainer.style.display = "none";
+                        searchInput.value = "";
+                    }
+                }
+            }
+          }
+        }
+
+        if (event.touches.length < 2) isPinching = false;
+        if (event.touches.length === 0) {
+          if (isPointerDown) {
+            isPointerDown = false;
+            campusMap.classList.remove("grabbing");
+          }
+        }
+      });
+      campusMap.addEventListener("touchcancel", (event) => {
+        isPointerDown = false;
+        isPinching = false;
+        campusMap.classList.remove("grabbing");
+        cancelAllAutomatedSequences();
+        clearSearchHighlightAndTimers();
+      });
+
+      // --- Reset Zoom Button ---
+      resetZoomBtn.addEventListener("click", () => {
+        cancelAllAutomatedSequences();
+        clearSearchHighlightAndTimers();
+        closeBottomSheet();
+        setMapViewBox({
+          x: SVG_VIEWBOX_X,
+          y: SVG_VIEWBOX_Y,
+          width: SVG_ORIGINAL_WIDTH,
+          height: SVG_ORIGINAL_HEIGHT,
+        });
+      });
+
+      // --- Building Data ---
+      const info = {
+        toaC1: {
+          name: "Tòa C1",
+          detail:
+            "Trung tâm hành chính và các phòng ban quản lý chính của trường. Nơi giải quyết các thủ tục sinh viên và công tác đối ngoại.",
+        },
+        toaC2: {
+          name: "Tòa C2",
+          detail:
+            "Gồm hội trường lớn cho các sự kiện quan trọng, các phòng thí nghiệm hiện đại về vật liệu xây dựng và công nghệ thông tin ứng dụng.",
+        },
+        toaC7: {
+          name: "Tòa C7",
+          detail: "Viện Kinh tế & Quản lý, trung tâm đào tạo quản trị.",
+        },
+        toaB1: {
+          name: "Tòa B1",
+          detail:
+            "Trường Hóa học và Khoa học Sự sống, các phòng thí nghiệm sinh học.",
+        },
+        toaKtx: {
+          name: "Ký túc xá",
+          detail: "Ký túc xá sinh viên với hơn 500 chỗ ở.",
+        },
+        toaC9: {
+          name: "Tòa C9",
+          detail: "Tòa nhà đa năng, phòng học và văn phòng các khoa.",
+        },
+        toaHoithao: {
+          name: "Khu Hội thảo",
+          detail: "Trung tâm tổ chức sự kiện, hội thảo quốc tế và trong nước.",
+        },
+        toaC3: {
+          name: "Tòa C3",
+          detail: "Khoa Cơ khí, các xưởng thực hành và phòng thí nghiệm.",
+        },
+        toaC4: {
+          name: "Tòa C4",
+          detail: "Khoa Điện, các phòng thí nghiệm chuyên ngành điện.",
+        },
+        toaC5: {
+          name: "Tòa C5",
+          detail: "Khoa Điện tử Viễn thông, trung tâm nghiên cứu.",
+        },
+        toaC10: { name: "Tòa C10", detail: "Giảng đường chung, phòng học lớn." },
+        toaThuvien: {
+          name: "Thư viện Tạ Quang Bửu",
+          detail: "Thư viện trung tâm với hàng triệu đầu sách và tài liệu số.",
+        },
+        toaHotien: {
+          name: "Hồ Tiền",
+          detail: "Khuôn viên cảnh quan, nơi thư giãn của sinh viên.",
+        },
+        toaD6: { name: "Tòa D6", detail: "Viện Công nghệ Sinh học và Thực phẩm." },
+        toaD8: { name: "Tòa D8", detail: "Viện Khoa học và Công nghệ Môi trường." },
+        toaD2a: {
+          name: "Tòa D2a",
+          detail: "Phần của khu nhà D2, văn phòng và phòng học.",
+        },
+        toaD2b: { name: "Tòa D2b", detail: "Phần của khu nhà D2, phòng thí nghiệm." },
+        toaVietduc: {
+          name: "Trung tâm Việt Đức (VDZ)",
+          detail: "Trung tâm hợp tác đào tạo và nghiên cứu với CHLB Đức.",
+        },
+        toaD2d: {
+          name: "Tòa D2d",
+          detail: "Phần của khu nhà D2, phòng nghiên cứu chuyên sâu.",
+        },
+        toaC3b: {
+          name: "Tòa C3b",
+          detail: "Mở rộng của tòa C3, xưởng thực hành hiện đại.",
+        },
+        toaC1b: {
+          name: "Tòa C1b",
+          detail: "Văn phòng các tổ chức sinh viên, đoàn thể.",
+        },
+        toaD3: { name: "Tòa D3", detail: "Viện Toán ứng dụng và Tin học." },
+        toaD5: { name: "Tòa D5", detail: "Viện Vật lý Kỹ thuật." },
+        toaD35: {
+          name: "Khối nhà D3-D5",
+          detail: "Liên kết giữa D3 và D5, không gian học tập chung.",
+        },
+        toaB6: { name: "Tòa B6", detail: "Trung tâm thể thao, nhà thi đấu đa năng." },
+        toaB7: {
+          name: "Tòa B7",
+          detail: "Sân vận động và các sân thể thao ngoài trời.",
+        },
+        toaB8: {
+          name: "Tòa B8",
+          detail: "Nhà ăn sinh viên và các dịch vụ tiện ích.",
+        },
+        toaB5: { name: "Tòa B5", detail: "Khoa Giáo dục Quốc phòng và An ninh." },
+        toaB9: { name: "Tòa B9", detail: "Trung tâm y tế của trường." },
+        toaD4: {
+          name: "Tòa D4",
+          detail: "Viện Ngoại ngữ, trung tâm đào tạo ngôn ngữ.",
+        },
+        toaVuonhoa: {
+          name: "Vườn hoa trung tâm",
+          detail: "Không gian xanh, nơi tổ chức các hoạt động ngoài trời.",
+        },
+        toaD7: {
+          name: "Tòa D7",
+          detail: "Viện Sư phạm Kỹ thuật, đào tạo giáo viên kỹ thuật.",
+        },
+      };
+
+      // --- Bottom Sheet Functions ---
+      function setPeekHeight() {
+        const mapContainerEl = campusMap.closest(".map-container");
+        if (!mapContainerEl) {
+          console.error("Map container not found for peek height calculation.");
+          bottomSheet.style.height = BOTTOM_SHEET_PEEK_MIN_PX + "px"; // Fallback to min height
+          return;
+        }
+
+        const mapContainerRect = mapContainerEl.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        // Calculate available space below the map container
+        let sheetHeight = viewportHeight - mapContainerRect.bottom - 10; // 10px margin from bottom
+
+        // Constrain by min/max peek height rules
+        sheetHeight = Math.max(
+          BOTTOM_SHEET_PEEK_MIN_PX,
+          Math.min(sheetHeight, viewportHeight * (BOTTOM_SHEET_PEEK_MAX_VH / 100)),
+        );
+        sheetHeight = Math.max(0, sheetHeight); // Ensure it's not negative
+        bottomSheet.style.height = sheetHeight + "px";
+      }
+
+      function openBottomSheet(buildingData) {
+        if (!buildingData) return;
+
+        bottomSheetTitle.textContent = buildingData.name || "Thông tin chi tiết";
+        let detailHTML = `<h3>${buildingData.name}</h3><p>${buildingData.detail || "Chưa có thông tin cho tòa nhà này."}</p>`;
+        bottomSheetContent.innerHTML = detailHTML;
+
+        setPeekHeight(); // Set initial peek height
+        isBottomSheetExpanded = false; // Reset expanded state
+        if (toggleBottomSheetHeightBtn) {
+          toggleBottomSheetHeightBtn.classList.remove("expanded");
+          toggleBottomSheetHeightBtn.setAttribute("aria-label", "Mở rộng");
+          // Update icons
+          toggleBottomSheetHeightBtn.querySelector(".icon-arrow-up").style.display = "block";
+          toggleBottomSheetHeightBtn.querySelector(".icon-arrow-down").style.display = "none";
+        }
+
+        bottomSheet.classList.add("open");
+        bottomSheetBackdrop.classList.add("open");
+        document.body.style.overflow = "hidden"; // Prevent body scroll when sheet is open
+      }
+
+      function closeBottomSheet() {
+        bottomSheet.classList.remove("open");
+        bottomSheetBackdrop.classList.remove("open");
+        document.body.style.overflow = ""; // Restore body scroll
+        bottomSheet.style.height = ""; // Reset height for CSS transition
+        isBottomSheetExpanded = false;
+        if (toggleBottomSheetHeightBtn) {
+          toggleBottomSheetHeightBtn.classList.remove("expanded");
+          toggleBottomSheetHeightBtn.setAttribute("aria-label", "Mở rộng");
+           // Update icons
+          toggleBottomSheetHeightBtn.querySelector(".icon-arrow-up").style.display = "block";
+          toggleBottomSheetHeightBtn.querySelector(".icon-arrow-down").style.display = "none";
+        }
+
+        // Delay resetting content until after close animation
+        setTimeout(() => {
+          if (!bottomSheet.classList.contains("open")) { // Check if still closed
+            bottomSheetTitle.textContent = "Thông tin tòa nhà";
+            bottomSheetContent.innerHTML = `<p class="placeholder">Chọn một tòa nhà trên bản đồ hoặc từ kết quả tìm kiếm để xem thông tin chi tiết.</p>`;
+          }
+        }, BOTTOM_SHEET_ANIMATION_DURATION);
+      }
+
+      function toggleBottomSheetExpansion() {
+        if (!bottomSheet.classList.contains("open") || !toggleBottomSheetHeightBtn)
+          return;
+
+        if (isBottomSheetExpanded) {
+          // Currently Full -> Collapse to Peek
+          setPeekHeight();
+          isBottomSheetExpanded = false;
+          toggleBottomSheetHeightBtn.classList.remove("expanded");
+          toggleBottomSheetHeightBtn.setAttribute("aria-label", "Mở rộng");
+          toggleBottomSheetHeightBtn.querySelector(".icon-arrow-up").style.display = "block";
+          toggleBottomSheetHeightBtn.querySelector(".icon-arrow-down").style.display = "none";
+        } else {
+          // Currently Peek -> Expand to Full
+          const fullHeight = window.innerHeight * (BOTTOM_SHEET_FULL_HEIGHT_VH / 100);
+          bottomSheet.style.height = fullHeight + "px";
+          isBottomSheetExpanded = true;
+          toggleBottomSheetHeightBtn.classList.add("expanded");
+          toggleBottomSheetHeightBtn.setAttribute("aria-label", "Thu gọn");
+          toggleBottomSheetHeightBtn.querySelector(".icon-arrow-up").style.display = "none";
+          toggleBottomSheetHeightBtn.querySelector(".icon-arrow-down").style.display = "block";
+        }
+      }
+
+      // Event listeners for Bottom Sheet
+      closeBottomSheetBtn.addEventListener("click", closeBottomSheet);
+      bottomSheetBackdrop.addEventListener("click", closeBottomSheet);
+      if (toggleBottomSheetHeightBtn) {
+        toggleBottomSheetHeightBtn.addEventListener(
+          "click",
+          toggleBottomSheetExpansion,
+        );
+      }
+
+      window.addEventListener("resize", () => {
+        if (bottomSheet.classList.contains("open")) {
+          if (isBottomSheetExpanded) {
+            const fullHeight =
+              window.innerHeight * (BOTTOM_SHEET_FULL_HEIGHT_VH / 100);
+            bottomSheet.style.height = fullHeight + "px";
+          } else {
+            setPeekHeight();
+          }
+        }
+      });
+
+      // --- Building Click Logic (for mouse clicks, touch is handled in touchend) ---
+      document.querySelectorAll(".building-rect").forEach((el) => {
+        el.addEventListener("click", (event) => {
+            // This logic is primarily for MOUSE clicks.
+            // Touch taps are handled in the 'touchend' listener for better differentiation from drags.
+            // However, we need to ensure this doesn't fire if it was part of a drag or pinch on mouse-based devices
+            // or if it's a touch device where touchend should handle it.
+
+            // Check if it's likely a drag rather than a click
+            const timeSinceTapStart = Date.now() - (tapStart.time || 0);
+            const clientX = event.clientX;
+            const clientY = event.clientY;
+            const distMoved = Math.sqrt(
+                Math.pow(clientX - (tapStart.x || clientX), 2) +
+                Math.pow(clientY - (tapStart.y || clientY), 2)
+            );
+
+            if (
+                isPinching || // if a pinch is active (primarily for touch)
+                isAnimatingViewBox || // if map is animating
+                (isPointerDown && (timeSinceTapStart > TAP_THRESHOLD_MS || distMoved > TAP_MOVE_THRESHOLD_PX)) // if it was a drag
+            ) {
+                return; // Don't treat drags as clicks
+            }
+
+            // Check if the event target is actually the building rect itself
+            // (not something inside it if we add labels later, though current SVG has rects as top elements)
+            const buildingRectEl = event.target.closest(".building-rect");
+            if (!buildingRectEl) return;
+
+
+            const buildingId = buildingRectEl.id;
+            if (
+                buildingId &&
+                info[buildingId]
+            ) {
+                cancelAllAutomatedSequences();
+                clearSearchHighlightAndTimers();
+                buildingRectEl.classList.add("search-highlight");
+                currentHighlightedRect = buildingRectEl;
+                openBottomSheet(info[buildingId]);
+                searchResultsContainer.style.display = "none";
+                searchInput.value = "";
+            }
+        });
+      });
+
+
+      // --- SEARCH FUNCTIONALITY ---
+      function normalizeString(str) {
+        if (!str) return "";
+        return str
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "") // Remove accents
+          .replace(/đ/g, "d"); // Convert 'đ' to 'd'
+      }
+      function debounce(func, delay) {
+        return function (...args) {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => func.apply(this, args), delay);
+        };
+      }
+
+      function performSearch() {
+        cancelAllAutomatedSequences();
+        clearSearchHighlightAndTimers();
+        closeBottomSheet(); // Close bottom sheet when starting a new search
+        const query = searchInput.value;
+        const normalizedQuery = normalizeString(query);
+        searchResultsList.innerHTML = "";
+
+        if (!query.trim()) {
+          searchResultsContainer.style.display = "none";
+          return;
+        }
+
+        const matches = [];
+        for (const id in info) {
+          const building = info[id];
+          const normalizedName = normalizeString(building.name);
+          const normalizedId = normalizeString(id); // Search by ID as well (e.g., "toaC1")
+
+          if (
+            normalizedName.includes(normalizedQuery) ||
+            normalizedId.includes(normalizedQuery)
+          ) {
+            matches.push({ id, ...building });
+          }
+        }
+
+        matches.sort((a, b) => a.name.localeCompare(b.name, "vi")); // Sort by name
+
+        if (matches.length > 0) {
+          matches.slice(0, 7).forEach((building) => { // Limit to 7 results
+            const li = document.createElement("li");
+            const buildingNameNorm = normalizeString(building.name).replace(
+              /\s+/g,
+              "",
+            ); // For comparison with ID
+            const buildingIdNorm = normalizeString(building.id);
+
+            li.textContent =
+              building.name +
+              (buildingIdNorm !== buildingNameNorm // Only show ID if it's different from name
+                ? ` (${building.id.toUpperCase()})`
+                : "");
+            li.dataset.buildingId = building.id;
+            li.addEventListener("click", () => handleSearchResultClick(building.id));
+            searchResultsList.appendChild(li);
+          });
+          searchResultsContainer.style.display = "block";
+        } else {
+          searchResultsList.innerHTML =
+            '<li class="no-results">Không có kết quả phù hợp.</li>';
+          searchResultsContainer.style.display = "block";
+        }
+      }
+
+      function handleSearchResultClick(buildingId) {
+        cancelAllAutomatedSequences();
+        clearSearchHighlightAndTimers();
+        const buildingData = info[buildingId];
+        const buildingRectEl = document.getElementById(buildingId);
+
+        if (buildingData && buildingRectEl) {
+          const rectCoords = buildingRectEl.getBBox(); // Get SVG bounding box
+
+          // Calculate target viewBox for initial zoom
+          let targetInitialWidth, targetInitialHeight;
+          if (rectCoords.width / rectCoords.height > SVG_ASPECT_RATIO) {
+            // Building is wider than map's aspect ratio, fit by width
+            targetInitialWidth = rectCoords.width / INITIAL_ZOOM_TO_BUILDING_FACTOR;
+            targetInitialHeight = targetInitialWidth / SVG_ASPECT_RATIO;
+          } else {
+            // Building is taller, fit by height
+            targetInitialHeight = rectCoords.height / INITIAL_ZOOM_TO_BUILDING_FACTOR;
+            targetInitialWidth = targetInitialHeight * SVG_ASPECT_RATIO;
+          }
+          // Ensure zoom is not too small or too large
+          targetInitialWidth = Math.max(
+            MIN_ZOOM_WIDTH * 1.5, // Ensure it's visibly zoomed
+            Math.min(targetInitialWidth, SVG_ORIGINAL_WIDTH * 0.9), // Don't zoom out too much
+          );
+          targetInitialHeight = targetInitialWidth / SVG_ASPECT_RATIO;
+
+          const initialZoomX =
+            rectCoords.x + rectCoords.width / 2 - targetInitialWidth / 2;
+          const initialZoomY =
+            rectCoords.y + rectCoords.height / 2 - targetInitialHeight / 2;
+          const initialZoomViewBox = {
+            x: initialZoomX,
+            y: initialZoomY,
+            width: targetInitialWidth,
+            height: targetInitialHeight,
+          };
+
+
+          buildingRectEl.classList.add("search-highlight");
+          currentHighlightedRect = buildingRectEl;
+
+          openBottomSheet(buildingData); // Open in peek state
+          searchInput.value = ""; // Clear search input
+          searchResultsContainer.style.display = "none"; // Hide search results
+
+          animateViewBox(initialZoomViewBox, ANIMATION_DURATION, () => {
+            // After initial zoom to building, set a timer to zoom out slightly for context
+            autoZoomOutTimer = setTimeout(() => {
+              if (!currentHighlightedRect || currentHighlightedRect.id !== buildingId)
+                return; // If selection changed or cleared, do nothing
+
+              const focusedVB = { ...currentViewBox }; // Current zoomed-in viewBox
+
+              // Determine a slightly zoomed-out overview viewBox
+              let overviewWidth = Math.min(
+                SVG_ORIGINAL_WIDTH,
+                focusedVB.width * OVERVIEW_ZOOM_OUT_FACTOR,
+              );
+              let overviewHeight = overviewWidth / SVG_ASPECT_RATIO;
+
+              // Ensure overview doesn't exceed original map dimensions
+              if (overviewHeight > SVG_ORIGINAL_HEIGHT) {
+                overviewHeight = SVG_ORIGINAL_HEIGHT;
+                overviewWidth = overviewHeight * SVG_ASPECT_RATIO;
+              }
+
+              // If the calculated overview is very close to the current focused view (e.g. already zoomed out),
+              // and we are not at full map view, then zoom to full map view.
+              // Otherwise, zoom to the calculated overview.
+              if (
+                Math.abs(overviewWidth - focusedVB.width) < 10 &&
+                Math.abs(overviewHeight - focusedVB.height) < 10
+              ) {
+                if (
+                  (focusedVB.width < SVG_ORIGINAL_WIDTH || // If not already at full width
+                  focusedVB.height < SVG_ORIGINAL_HEIGHT) && // Or not at full height
+                  currentHighlightedRect // And a building is still highlighted
+                ) {
+                  // Zoom to full map view
+                  animateViewBox(
+                    {
+                      x: SVG_VIEWBOX_X,
+                      y: SVG_VIEWBOX_Y,
+                      width: SVG_ORIGINAL_WIDTH,
+                      height: SVG_ORIGINAL_HEIGHT,
+                    },
+                    ANIMATION_DURATION,
+                    () => { // After zooming to full view
+                      if (currentHighlightedRect) {
+                        highlightTimeout = setTimeout(
+                          clearSearchHighlightAndTimers,
+                          HIGHLIGHT_DURATION_AFTER_ANIMATION,
+                        );
+                      }
+                    },
+                  );
+                } else if (currentHighlightedRect) {
+                    // Already at or near full view, just set highlight timeout
+                     highlightTimeout = setTimeout(
+                        clearSearchHighlightAndTimers,
+                        HIGHLIGHT_DURATION_AFTER_ANIMATION,
+                    );
+                }
+                return; // Exit, no further auto-zoom needed
+              }
+
+
+              // Center the overview zoom around the current focused area
+              const overviewX = focusedVB.x + (focusedVB.width - overviewWidth) / 2;
+              const overviewY = focusedVB.y + (focusedVB.height - overviewHeight) / 2;
+              const targetOverviewVb = {
+                x: overviewX,
+                y: overviewY,
+                width: overviewWidth,
+                height: overviewHeight,
+              };
+
+              animateViewBox(targetOverviewVb, ANIMATION_DURATION, () => {
+                // After auto-zoom-out, keep highlight for a bit longer
+                if (currentHighlightedRect) {
+                  highlightTimeout = setTimeout(
+                    clearSearchHighlightAndTimers,
+                    HIGHLIGHT_DURATION_AFTER_ANIMATION,
+                  );
+                }
+              });
+            }, AUTO_ZOOM_OUT_INITIAL_WAIT);
+          });
+        }
+      }
+
+      // Event Listeners for Search
+      searchInput.addEventListener("input", debounce(performSearch, 300));
+      // Hide search results if clicked outside
+      document.addEventListener("click", function (event) {
+        if (
+          searchResultsContainer.style.display === "block" &&
+          !searchInput.contains(event.target) &&
+          !searchResultsContainer.contains(event.target)
+        ) {
+          searchResultsContainer.style.display = "none";
+        }
+      });
+      // Handle Escape key in search input
+      searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          searchInput.value = "";
+          searchResultsContainer.style.display = "none";
+          searchInput.blur(); // Remove focus from input
+          cancelAllAutomatedSequences();
+          clearSearchHighlightAndTimers();
+          closeBottomSheet();
+        }
+      });
+
+      // Initial setup
+      setMapViewBox(currentViewBox); // Set initial viewBox
+    </script>
+  </body>
 </html>
