@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
     />
-    <title>Bản đồ khuôn viên - Highlight Mục Tìm Kiếm</title>
+    <title>Bản đồ khuôn viên - Cập nhật Peek Height & Close Animation</title>
     <style>
       /* General body styles */
       body {
@@ -62,7 +62,7 @@
       #searchResultsContainer li { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
       #searchResultsContainer li:last-child { border-bottom: none; }
       #searchResultsContainer li:hover { background-color: #f0f0f0; }
-      #searchResultsContainer li strong { color: #007bff; } /* Nổi bật tên thực thể tìm thấy */
+      #searchResultsContainer li strong { color: #007bff; } 
       #searchResultsContainer .no-results { padding: 10px; color: #777; text-align: center; }
       #searchResultsContainer .error-message { padding: 10px; color: #dc3545; text-align: center; font-style: italic; }
 
@@ -112,9 +112,26 @@
       }
 
       /* --- Bottom Sheet Styles --- */
-      .bottom-sheet-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.05); z-index: 1010; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s; }
-      .bottom-sheet-backdrop.open { opacity: 1; visibility: visible; transition: opacity 0.3s ease-in-out, visibility 0s linear 0s; }
-      .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; background-color: #ffffff; border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15); z-index: 1020; transform: translateY(100%); transition: transform 0.3s ease-in-out, height 0.3s ease-in-out; display: flex; flex-direction: column; touch-action: pan-y; }
+      .bottom-sheet-backdrop {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.05); /* <<-- ĐÃ CẬP NHẬT ĐỘ MỜ THEO Ý BẠN */
+        z-index: 1010;
+        opacity: 0; visibility: hidden;
+        transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
+      }
+      .bottom-sheet-backdrop.open {
+        opacity: 1; visibility: visible;
+        transition: opacity 0.3s ease-in-out, visibility 0s linear 0s;
+      }
+      .bottom-sheet {
+        position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
+        max-width: 900px; margin-left: auto; margin-right: auto;
+        background-color: #ffffff; border-top-left-radius: 16px; border-top-right-radius: 16px;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15); z-index: 1020;
+        transform: translateY(100%);
+        transition: transform 0.3s ease-in-out, height 0.3s ease-in-out;
+        display: flex; flex-direction: column; touch-action: pan-y;
+      }
       .bottom-sheet.open { transform: translateY(0); }
       .bottom-sheet.no-transition { transition: none !important; }
       .bottom-sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; cursor: grab; touch-action: pan-y; }
@@ -152,7 +169,6 @@
       .detail-images-gallery img { width: calc(33.333% - 6px); max-width: 120px; height: 80px; border-radius: 4px; object-fit: cover; border: 1px solid #ddd; cursor: pointer; transition: transform 0.2s ease; }
       .detail-images-gallery img:hover { transform: scale(1.05); }
 
-      /* --- Tab Styles --- */
       .tab-navigation { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 15px; margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; background-color: #f9f9f9;}
       .tab-button { padding: 10px 15px; cursor: pointer; border: none; background-color: transparent; border-bottom: 3px solid transparent; margin-right: 1px; font-size: 0.9em; color: #555; outline: none;}
       .tab-button:hover { color: #007bff; }
@@ -166,15 +182,7 @@
       .tab-panel ul li:last-child { border-bottom: none; }
       .tab-panel ul li strong { display: block; color: #333;}
       .tab-panel ul li small { color: #777; }
-      .highlighted-entity {
-        background-color: #fff3cd !important; /* Màu vàng nhạt */
-        border-left: 4px solid #ffe082 !important; /* Đường kẻ vàng bên trái */
-        padding-left: 8px !important; 
-        margin-left: -12px !important; /* Điều chỉnh nếu padding của li cha làm lệch */
-        padding-right: 8px !important;
-        margin-right: -8px !important; /* Điều chỉnh cho cân đối */
-        border-radius: 4px !important;
-      }
+      .highlighted-entity { background-color: #fff3cd !important; border-left: 4px solid #ffe082 !important; padding-left: 8px !important; margin-left: -12px !important; padding-right: 8px !important; margin-right: -8px !important; border-radius: 4px !important; }
 
       /* --- App Footer Styles --- */
       .app-footer { width: 100%; max-width: 900px; padding: 15px 10px; box-sizing: border-box; text-align: center; font-size: 0.85em; color: #888; margin-top: auto; flex-shrink: 0; border-top: 1px solid #e0e0e0; background-color: #f9f9f9; }
@@ -282,6 +290,7 @@
       //--------------------------------------------------------------------
       let buildingData = []; 
       let detailedBuildingDataCache = {}; 
+
       const SVG_VIEWBOX_X = 5, SVG_VIEWBOX_Y = 5;
       const SVG_IMAGE_FULL_WIDTH = 970, SVG_IMAGE_FULL_HEIGHT = 910;
       const SVG_ORIGINAL_WIDTH = SVG_IMAGE_FULL_WIDTH - 2 * SVG_VIEWBOX_X;
@@ -296,8 +305,13 @@
       let debounceTimer, highlightTimeout = null, autoZoomOutTimer = null;
       let isAnimatingViewBox = false, animationFrameId = null, currentHighlightedRect = null;
       let isBottomSheetOpen = false, isBottomSheetExpanded = false;
-      const BOTTOM_SHEET_FULL_HEIGHT_VH = 90, BOTTOM_SHEET_PEEK_MAX_VH = 70;
-      const BOTTOM_SHEET_PEEK_MIN_PX = 100, BOTTOM_SHEET_ANIMATION_DURATION = 300;
+      
+      const BOTTOM_SHEET_FULL_HEIGHT_VH = 90; 
+      const BOTTOM_SHEET_ANIMATION_DURATION = 300;
+      // Hằng số mới cho peek height
+      const DEFAULT_PEEK_VIEWPORT_FRACTION = 0.40; 
+      const ABSOLUTE_MIN_PEEK_PX = 200;        
+
       let isSwipingBottomSheet = false, swipeStartY = 0, swipeStartTime = 0, initialSheetHeightOnSwipe = 0;
       const SWIPE_THRESHOLD_DISTANCE = 50, SWIPE_THRESHOLD_VELOCITY = 0.3;
       const AUTO_ZOOM_OUT_INITIAL_WAIT = 1800, INITIAL_ZOOM_TO_BUILDING_FACTOR = 0.5;
@@ -321,60 +335,50 @@
       function getTouchMidpoint(t1, t2) { return { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 }; }
 
       //--------------------------------------------------------------------
-      // Bottom Sheet Logic
+      // Bottom Sheet Logic - CẬP NHẬT PEEK HEIGHT & CLOSE ANIMATION
       //--------------------------------------------------------------------
-      function calculatePeekHeight() { const mapContainerEl = campusMap.closest(".map-container"); const imageContainer = document.querySelector('.inserted-image-container'); if (!mapContainerEl) { return BOTTOM_SHEET_PEEK_MIN_PX; } const mapContainerRect = mapContainerEl.getBoundingClientRect(); const viewportHeight = window.innerHeight; const bottomElement = imageContainer || mapContainerEl; const spaceBelow = viewportHeight - bottomElement.getBoundingClientRect().bottom - 10; let sheetHeight = Math.max( BOTTOM_SHEET_PEEK_MIN_PX, Math.min(spaceBelow, viewportHeight * (BOTTOM_SHEET_PEEK_MAX_VH / 100)) ); return Math.max(0, sheetHeight); }
+      function calculatePeekHeight() { // <<-- HÀM ĐÃ CẬP NHẬT
+          const viewportHeight = window.innerHeight;
+          let peekHeight = viewportHeight * DEFAULT_PEEK_VIEWPORT_FRACTION; 
+          peekHeight = Math.max(peekHeight, ABSOLUTE_MIN_PEEK_PX);
+          const fullSheetHeightPixels = viewportHeight * (BOTTOM_SHEET_FULL_HEIGHT_VH / 100);
+          peekHeight = Math.min(peekHeight, fullSheetHeightPixels * 0.85);
+          return Math.max(0, peekHeight);
+      }
       function setSheetToPeekHeight() { const peekHeight = calculatePeekHeight(); bottomSheet.style.height = peekHeight + "px"; isBottomSheetExpanded = false; if (toggleBottomSheetHeightBtn) { toggleBottomSheetHeightBtn.classList.remove("expanded"); toggleBottomSheetHeightBtn.setAttribute("aria-label", "Mở rộng"); toggleBottomSheetHeightBtn.querySelector(".icon-arrow-up").style.display = "block"; toggleBottomSheetHeightBtn.querySelector(".icon-arrow-down").style.display = "none"; } }
       function setSheetToFullHeight() { const fullHeight = window.innerHeight * (BOTTOM_SHEET_FULL_HEIGHT_VH / 100); bottomSheet.style.height = fullHeight + "px"; isBottomSheetExpanded = true; if (toggleBottomSheetHeightBtn) { toggleBottomSheetHeightBtn.classList.add("expanded"); toggleBottomSheetHeightBtn.setAttribute("aria-label", "Thu gọn"); toggleBottomSheetHeightBtn.querySelector(".icon-arrow-up").style.display = "none"; toggleBottomSheetHeightBtn.querySelector(".icon-arrow-down").style.display = "block"; } }
 
-      function setupTabNavigation(contentRootElement, entityToHighlight = null, entityFoundInUnits = false) {
+      function setupTabNavigation(contentRootElement, entityToHighlight = null, entityFoundInWhichTabId = null) {
           const tabNavigation = contentRootElement.querySelector('[data-role="tab-navigation"]');
           if (!tabNavigation) return;
-
           const tabButtons = tabNavigation.querySelectorAll('.tab-button');
           const tabPanels = contentRootElement.querySelectorAll('.tab-content-area .tab-panel');
 
           tabButtons.forEach(btn => btn.classList.remove('active'));
-          tabPanels.forEach(panel => {
-              panel.classList.remove('active');
-              panel.style.display = 'none';
-          });
+          tabPanels.forEach(panel => { panel.classList.remove('active'); panel.style.display = 'none';});
 
           let defaultActiveButton = null;
-          let targetPanelIdForHighlight = null;
-
-          if (entityToHighlight && entityFoundInUnits) {
-              defaultActiveButton = tabNavigation.querySelector('.tab-button[data-tab-target="#tab-units"]');
-              if (defaultActiveButton && defaultActiveButton.style.display !== 'none') {
-                targetPanelIdForHighlight = '#tab-units';
-              } else { // Nút tab bị ẩn, reset
-                defaultActiveButton = null; 
-              }
+          if (entityToHighlight && entityFoundInWhichTabId) {
+              defaultActiveButton = tabNavigation.querySelector(`.tab-button[data-tab-target="${entityFoundInWhichTabId}"]`);
           }
-          // Thêm logic tương tự nếu có entity được tìm thấy trong các tab khác (ví dụ: tab CLB)
-          // else if (entityToHighlight && entityFoundInClubs) { ... defaultActiveButton = ...("[data-tab-target='#tab-clubs']"); targetPanelIdForHighlight = '#tab-clubs'; ...}
           
-          if (!defaultActiveButton) {
+          if (!defaultActiveButton || defaultActiveButton.style.display === 'none') {
               defaultActiveButton = tabNavigation.querySelector('.tab-button[data-tab-target="#tab-overview"]');
               if (!defaultActiveButton || defaultActiveButton.style.display === 'none') {
-                  for (const btn of tabButtons) { // Tìm tab đầu tiên hiển thị
-                      if (btn.style.display !== 'none') {
-                          defaultActiveButton = btn;
-                          break;
-                      }
+                  for (const btn of tabButtons) { 
+                      if (btn.style.display !== 'none') { defaultActiveButton = btn; break; }
                   }
               }
           }
           
           if (defaultActiveButton) {
               defaultActiveButton.classList.add('active');
-              const activePanelId = defaultActiveButton.dataset.tabTarget; // Lấy ID panel từ nút active
+              const activePanelId = defaultActiveButton.dataset.tabTarget;
               const activePanel = contentRootElement.querySelector(activePanelId);
               if (activePanel) {
                   activePanel.classList.add('active');
                   activePanel.style.display = 'block';
-
-                  if (entityToHighlight && activePanelId === targetPanelIdForHighlight) {
+                  if (entityToHighlight && activePanelId === entityFoundInWhichTabId) {
                       setTimeout(() => { 
                           const highlightedEl = activePanel.querySelector('.highlighted-entity');
                           if (highlightedEl) {
@@ -423,7 +427,6 @@
                   detailImagesSection.style.display = ''; 
               } else { detailImagesSection.style.display = 'none'; }
           }
-          // ... (Tương tự cho phone, website, services trong tab Tổng quan) ...
           const openingHoursSection = templateClone.querySelector('[data-role="opening-hours-section"]');
           const openingHoursList = templateClone.querySelector('[data-role="building-opening-hours-list"]');
           if (openingHoursSection && openingHoursList) { if (detailedData.openingHours && Array.isArray(detailedData.openingHours) && detailedData.openingHours.length > 0) { detailedData.openingHours.forEach(item => { const li = document.createElement('li'); li.textContent = item; openingHoursList.appendChild(li); }); openingHoursSection.style.display = ''; } else { openingHoursSection.style.display = 'none'; } }
@@ -438,7 +441,6 @@
           const servicesList = templateClone.querySelector('[data-role="building-services-list"]');
           if (servicesSection && servicesList) { if (detailedData.services && Array.isArray(detailedData.services) && detailedData.services.length > 0) { detailedData.services.forEach(item => { const li = document.createElement('li'); li.textContent = item; servicesList.appendChild(li); }); servicesSection.style.display = ''; } else { servicesSection.style.display = 'none'; } }
           
-          // --- Điền thông tin cho Tab "Đơn vị" ---
           const unitsListElement = templateClone.querySelector('[data-role="units-list"]');
           const unitsTabButton = templateClone.querySelector('[data-role="units-tab-button"]');
           const unitsContentPanel = templateClone.querySelector('#tab-units');
@@ -474,12 +476,36 @@
           bottomSheetContent.scrollTop = 0;
       }
 
-      function openBottomSheetOnly(initialName = "Thông tin chi tiết") { /* Giữ nguyên */ if(isBottomSheetOpen && bottomSheetTitle.textContent !== "Đang tải...") { if (bottomSheetTitle.textContent !== initialName) { bottomSheetTitle.textContent = initialName; } if (!isBottomSheetExpanded) setSheetToPeekHeight(); return;  } bottomSheetTitle.textContent = initialName; setSheetToPeekHeight(); bottomSheet.classList.add("open"); bottomSheetBackdrop.classList.add("open"); document.body.style.overflow = "hidden"; isBottomSheetOpen = true; }
-      function closeBottomSheet() { /* Giữ nguyên */ if (!isBottomSheetOpen) return; bottomSheet.classList.remove("open"); bottomSheetBackdrop.classList.remove("open"); document.body.style.overflow = ""; bottomSheet.style.height = ""; isBottomSheetExpanded = false; if (toggleBottomSheetHeightBtn) { toggleBottomSheetHeightBtn.classList.remove("expanded"); toggleBottomSheetHeightBtn.setAttribute("aria-label", "Mở rộng"); toggleBottomSheetHeightBtn.querySelector(".icon-arrow-up").style.display = "block"; toggleBottomSheetHeightBtn.querySelector(".icon-arrow-down").style.display = "none"; } const wasOpen = isBottomSheetOpen; isBottomSheetOpen = false; setTimeout(() => { if (!isBottomSheetOpen && wasOpen) { bottomSheetTitle.textContent = "Thông tin tòa nhà"; bottomSheetContent.innerHTML = `<p class="placeholder">Chọn một tòa nhà trên bản đồ hoặc từ kết quả tìm kiếm để xem thông tin chi tiết.</p>`; } }, BOTTOM_SHEET_ANIMATION_DURATION); clearSearchHighlightAndTimers(); }
-      function toggleBottomSheetExpansion() { /* Giữ nguyên */ if (!isBottomSheetOpen || isSwipingBottomSheet) return; if (isBottomSheetExpanded) { setSheetToPeekHeight(); } else { setSheetToFullHeight(); } }
-      function handleTouchStart(event) { /* Giữ nguyên */ if (!event.target.closest('#bottomSheetHeader') || isAnimatingViewBox) return; isSwipingBottomSheet = true; swipeStartY = event.touches[0].clientY; swipeStartTime = Date.now(); initialSheetHeightOnSwipe = bottomSheet.offsetHeight; bottomSheet.classList.add('no-transition'); }
-      function handleTouchMove(event) { /* Giữ nguyên */ if (!isSwipingBottomSheet) return; event.preventDefault(); const currentY = event.touches[0].clientY; let deltaY = currentY - swipeStartY; let newHeight = initialSheetHeightOnSwipe - deltaY; const minDragHeight = 50; const maxDragHeight = window.innerHeight - 20; newHeight = Math.max(minDragHeight, Math.min(newHeight, maxDragHeight)); bottomSheet.style.height = newHeight + 'px'; }
-      function handleTouchEnd(event) { /* Giữ nguyên */ if (!isSwipingBottomSheet) return; isSwipingBottomSheet = false; bottomSheet.classList.remove('no-transition'); const currentY = event.changedTouches[0].clientY; const deltaY = currentY - swipeStartY; const swipeDuration = Date.now() - swipeStartTime; const velocity = swipeDuration > 0 ? deltaY / swipeDuration : 0; const currentHeight = bottomSheet.offsetHeight; const peekHeight = calculatePeekHeight(); const fullHeight = window.innerHeight * (BOTTOM_SHEET_FULL_HEIGHT_VH / 100); if ((deltaY > SWIPE_THRESHOLD_DISTANCE || velocity > SWIPE_THRESHOLD_VELOCITY) && initialSheetHeightOnSwipe <= peekHeight + 20) { closeBottomSheet(); return; } if ((deltaY > SWIPE_THRESHOLD_DISTANCE || velocity > SWIPE_THRESHOLD_VELOCITY) && isBottomSheetExpanded) { setSheetToPeekHeight(); return; } if ((deltaY < -SWIPE_THRESHOLD_DISTANCE || velocity < -SWIPE_THRESHOLD_VELOCITY) && !isBottomSheetExpanded) { setSheetToFullHeight(); return; } if (isBottomSheetExpanded) { if (currentHeight < fullHeight - SWIPE_THRESHOLD_DISTANCE) { setSheetToPeekHeight(); } else { setSheetToFullHeight(); } } else { if (currentHeight > peekHeight + SWIPE_THRESHOLD_DISTANCE) { setSheetToFullHeight(); } else { setSheetToPeekHeight(); } } }
+      function openBottomSheetOnly(initialName = "Thông tin chi tiết") { if(isBottomSheetOpen && bottomSheetTitle.textContent !== "Đang tải...") { if (bottomSheetTitle.textContent !== initialName) { bottomSheetTitle.textContent = initialName; } if (!isBottomSheetExpanded) setSheetToPeekHeight(); return;  } bottomSheetTitle.textContent = initialName; setSheetToPeekHeight(); bottomSheet.classList.add("open"); bottomSheetBackdrop.classList.add("open"); document.body.style.overflow = "hidden"; isBottomSheetOpen = true; }
+      
+      function closeBottomSheet() { // <<-- HÀM ĐÃ CẬP NHẬT
+          if (!isBottomSheetOpen) return;
+          bottomSheet.classList.remove("open"); 
+          bottomSheetBackdrop.classList.remove("open");
+          document.body.style.overflow = ""; 
+          isBottomSheetExpanded = false;
+          if (toggleBottomSheetHeightBtn) {
+              toggleBottomSheetHeightBtn.classList.remove("expanded");
+              toggleBottomSheetHeightBtn.setAttribute("aria-label", "Mở rộng");
+              toggleBottomSheetHeightBtn.querySelector(".icon-arrow-up").style.display = "block";
+              toggleBottomSheetHeightBtn.querySelector(".icon-arrow-down").style.display = "none";
+          }
+          const wasOpen = isBottomSheetOpen;
+          isBottomSheetOpen = false;
+          setTimeout(() => {
+              if (!isBottomSheetOpen && wasOpen) { 
+                  bottomSheetTitle.textContent = "Thông tin tòa nhà";
+                  bottomSheetContent.innerHTML = `<p class="placeholder">Chọn một tòa nhà trên bản đồ hoặc từ kết quả tìm kiếm để xem thông tin chi tiết.</p>`;
+                  bottomSheet.style.height = ""; // Reset height SAU animation
+              }
+          }, BOTTOM_SHEET_ANIMATION_DURATION); 
+          clearSearchHighlightAndTimers();
+      }
+
+      function toggleBottomSheetExpansion() { if (!isBottomSheetOpen || isSwipingBottomSheet) return; if (isBottomSheetExpanded) { setSheetToPeekHeight(); } else { setSheetToFullHeight(); } }
+      function handleTouchStart(event) { if (!event.target.closest('#bottomSheetHeader') || isAnimatingViewBox) return; isSwipingBottomSheet = true; swipeStartY = event.touches[0].clientY; swipeStartTime = Date.now(); initialSheetHeightOnSwipe = bottomSheet.offsetHeight; bottomSheet.classList.add('no-transition'); }
+      function handleTouchMove(event) { if (!isSwipingBottomSheet) return; event.preventDefault(); const currentY = event.touches[0].clientY; let deltaY = currentY - swipeStartY; let newHeight = initialSheetHeightOnSwipe - deltaY; const minDragHeight = 50; const maxDragHeight = window.innerHeight - 20; newHeight = Math.max(minDragHeight, Math.min(newHeight, maxDragHeight)); bottomSheet.style.height = newHeight + 'px'; }
+      function handleTouchEnd(event) { if (!isSwipingBottomSheet) return; isSwipingBottomSheet = false; bottomSheet.classList.remove('no-transition'); const currentY = event.changedTouches[0].clientY; const deltaY = currentY - swipeStartY; const swipeDuration = Date.now() - swipeStartTime; const velocity = swipeDuration > 0 ? deltaY / swipeDuration : 0; const currentHeight = bottomSheet.offsetHeight; const peekHeight = calculatePeekHeight(); const fullHeight = window.innerHeight * (BOTTOM_SHEET_FULL_HEIGHT_VH / 100); if ((deltaY > SWIPE_THRESHOLD_DISTANCE || velocity > SWIPE_THRESHOLD_VELOCITY) && initialSheetHeightOnSwipe <= peekHeight + 20) { closeBottomSheet(); return; } if ((deltaY > SWIPE_THRESHOLD_DISTANCE || velocity > SWIPE_THRESHOLD_VELOCITY) && isBottomSheetExpanded) { setSheetToPeekHeight(); return; } if ((deltaY < -SWIPE_THRESHOLD_DISTANCE || velocity < -SWIPE_THRESHOLD_VELOCITY) && !isBottomSheetExpanded) { setSheetToFullHeight(); return; } if (isBottomSheetExpanded) { if (currentHeight < fullHeight - SWIPE_THRESHOLD_DISTANCE) { setSheetToPeekHeight(); } else { setSheetToFullHeight(); } } else { if (currentHeight > peekHeight + SWIPE_THRESHOLD_DISTANCE) { setSheetToFullHeight(); } else { setSheetToPeekHeight(); } } }
 
       //--------------------------------------------------------------------
       // Search Logic
@@ -579,7 +605,7 @@
                             const buildingId = targetElement.id; 
                             cancelAllAutomatedSequences(); clearSearchHighlightAndTimers(); 
                             const currentTargetEl = targetElement; 
-                            fetchAndDisplayBuildingDetails(buildingId) // Không truyền entityNameToHighlight khi click map
+                            fetchAndDisplayBuildingDetails(buildingId) 
                                 .then(detailedData => { if (detailedData) { currentTargetEl.classList.add("search-highlight"); currentHighlightedRect = currentTargetEl; } searchResultsContainer.style.display = "none"; searchInput.value = ""; })
                                 .catch(error => { console.error("Map tap: Failed to display details:", error); });
                         } 
@@ -600,7 +626,7 @@
                 if (!buildingRectEl) return; 
                 const buildingId = buildingRectEl.id; 
                 cancelAllAutomatedSequences(); clearSearchHighlightAndTimers(); 
-                fetchAndDisplayBuildingDetails(buildingId) // Không truyền entityNameToHighlight khi click map
+                fetchAndDisplayBuildingDetails(buildingId) 
                     .then(detailedData => { if (detailedData) { buildingRectEl.classList.add("search-highlight"); currentHighlightedRect = buildingRectEl; } searchResultsContainer.style.display = "none"; searchInput.value = ""; })
                     .catch(error => { console.warn(`Map click: Failed to display details for ${buildingId}:`, error); });
             }); 
@@ -650,7 +676,7 @@
               if (!Array.isArray(buildingData)) { throw new Error("Dữ liệu từ buildings_index.json không phải là một mảng."); }
               initializeMapApp(); 
               searchInput.disabled = false; 
-              searchInput.placeholder = "Tìm tên hoặc mã tòa nhà, khoa, viện..."; // Cập nhật placeholder
+              searchInput.placeholder = "Tìm tên hoặc mã tòa nhà, khoa, viện..."; 
           } catch (error) {
               console.error("Không thể tải hoặc phân tích dữ liệu index tòa nhà:", error);
               if(bottomSheetContent) bottomSheetContent.innerHTML = `<p class="placeholder error-message">Lỗi tải dữ liệu bản đồ chính. Chi tiết: ${error.message}. Vui lòng kiểm tra file 'buildings_index.json' và cấu trúc thư mục 'data/buildings/' hoặc thử lại sau.</p>`;
@@ -664,4 +690,6 @@
     </script>
   </body>
 </html>
+
+
 
