@@ -1,0 +1,162 @@
+[
+  { 
+    "id": "toaC1", 
+    "name": "Tòa C1 (Nhà Hành chính)",
+    "tags": ["Hành chính", "Phòng Đào tạo", "Phòng Công tác Sinh viên", "Phòng Hợp tác Đối ngoại", "Ban Giám hiệu", "Văn phòng Trường", "Phòng Kế hoạch Tài chính", "Phòng Tổ chức Cán bộ"] 
+  },
+  { 
+    "id": "toaC2", 
+    "name": "Tòa C2",
+    "tags": ["Hội trường lớn", "Văn phòng Đảng ủy, Công Đoàn, Đoàn Thanh niên", "Phòng Thanh tra Pháp chế"] 
+  },
+  { 
+    "id": "toaC3", 
+    "name": "Tòa C3",
+    "tags": ["Trường Cơ khí", "SME", "Xưởng thực hành Cơ khí", "Kỹ thuật Cơ khí"] 
+  },
+  { 
+    "id": "toaC4", 
+    "name": "Tòa C4",
+    "tags": ["Trường Điện - Điện tử", "SEEE", "Kỹ thuật Điện", "Trường Hóa và Khoa học sự sống", "SCLS", "Kỹ thuật Hóa học"] 
+  },
+  { 
+    "id": "toaC5", 
+    "name": "Tòa C5",
+    "tags": ["Trường Điện - Điện tử", "SEEE", "Kỹ thuật Điện tử Viễn thông", "Trường Vật liệu", "SMSE"] 
+  },
+  { 
+    "id": "toaC7", 
+    "name": "Tòa C7",
+    "tags": ["Văn phòng khoa", "Giảng đường"] 
+  },
+  { 
+    "id": "toaC9", 
+    "name": "Tòa C9",
+    "tags": ["Viện Kinh tế và Quản Lý", "SEM", "Kinh tế", "Quản lý", "Trường Điện - Điện tử", "SEEE"] 
+  },
+  { 
+    "id": "toaC10", 
+    "name": "Tòa C10",
+    "tags": ["Giảng đường lớn", "Trường Cơ khí", "SME", "Trường Hóa và Khoa học sự sống", "SCLS"] 
+  },
+  { 
+    "id": "toaB1", 
+    "name": "Tòa B1",
+    "tags": ["Trường Công nghệ Thông tin và Truyền thông", "SoICT", "Trường Hóa và Khoa học sự sống", "SCLS"] 
+  },
+  { 
+    "id": "toaThuvien", 
+    "name": "Thư viện Tạ Quang Bửu", 
+    "tags": ["Sách", "Tài liệu", "Tự học", "Mượn sách", "Thư viện số", "Trung tâm Mạng thông tin"] 
+  },
+  { 
+    "id": "toaKtx", 
+    "name": "Ký túc xá",
+    "tags": ["Sinh viên", "Nội trú", "Chỗ ở", "Ban quản lý KTX"] 
+  },
+  { 
+    "id": "toaHoithao", 
+    "name": "Khu Hội thảo C2",
+    "tags": ["Sự kiện", "Hội nghị", "Hội trường"] 
+  },
+  { 
+    "id": "toaHotien", 
+    "name": "Hồ Tiền",
+    "tags": ["Cảnh quan", "Thư giãn", "Không gian xanh"] 
+  },
+  { 
+    "id": "toaD3", 
+    "name": "Tòa D3",
+    "tags": ["Khoa Toán - Tin", "SAMI", "Khoa Vật lý Kỹ thuật", "SEP", "Trường Vật liệu", "SMSE"] 
+  },
+  { 
+    "id": "toaD5", 
+    "name": "Tòa D5",
+    "tags": ["Khoa Toán - Tin", "SAMI", "Khoa Vật lý Kỹ thuật", "SEP", "Trường Công nghệ Thông tin và Truyền thông", "SoICT", "Trường Vật liệu", "SMSE"] 
+  },
+  { 
+    "id": "toaD6", 
+    "name": "Tòa D6",
+    "tags": ["Trường Hóa và Khoa học sự sống", "SCLS", "Viện Công nghệ Sinh học và Thực phẩm", "Công nghệ Sinh học", "Công nghệ Thực phẩm"] 
+  },
+  { 
+    "id": "toaD8", 
+    "name": "Tòa D8",
+    "tags": ["Viện Khoa học và Công nghệ Môi trường", "INEST", "Môi trường", "Trường Hóa và Khoa học sự sống", "SCLS"] 
+  },
+  { 
+    "id": "toaD2a", 
+    "name": "Tòa D2A",
+    "tags": ["Văn phòng", "Phòng học", "Khu nhà D2"] 
+  },
+  { 
+    "id": "toaD2b", 
+    "name": "Tòa D2B",
+    "tags": ["Phòng thí nghiệm", "Khu nhà D2"] 
+  },
+  { 
+    "id": "toaVietduc", 
+    "name": "Trung tâm Việt Đức (VDZ)",
+    "tags": ["Hợp tác quốc tế", "Đào tạo", "Nghiên cứu", "Việt Đức", "Khu nhà D2"] 
+  },
+  { 
+    "id": "toaD2d", 
+    "name": "Tòa D2D",
+    "tags": ["Phòng nghiên cứu", "Khu nhà D2"] 
+  },
+  { 
+    "id": "toaC3b", 
+    "name": "Tòa C3B (Xưởng)",
+    "tags": ["Trường Cơ khí", "SME", "Xưởng thực hành"] 
+  },
+  { 
+    "id": "toaC1b", 
+    "name": "Tòa C1B",
+    "tags": ["Tổ chức sinh viên", "Đoàn thể", "Câu lạc bộ", "Văn phòng Đoàn trường"] 
+  },
+  { 
+    "id": "toaD35", 
+    "name": "Khối nhà D3-D5",
+    "tags": ["Toán - Tin", "Vật lý Kỹ thuật", "SAMI", "SEP", "Công nghệ Thông tin", "SoICT", "Vật liệu", "SMSE"] 
+  },
+  { 
+    "id": "toaB6", 
+    "name": "Tòa B6 (Nhà thi đấu)",
+    "tags": ["Trung tâm Giáo dục Thể chất và Thể thao", "Thể thao", "Nhà thi đấu"] 
+  },
+  { 
+    "id": "toaB7", 
+    "name": "Tòa B7 (Sân vận động)",
+    "tags": ["Sân vận động", "Thể thao ngoài trời", "Sân bóng"] 
+  },
+  { 
+    "id": "toaB8", 
+    "name": "Tòa B8 (Nhà ăn)",
+    "tags": ["Nhà ăn sinh viên", "Dịch vụ ăn uống"] 
+  },
+  { 
+    "id": "toaB5", 
+    "name": "Tòa B5",
+    "tags": ["Khoa Giáo dục Quốc phòng và An ninh", "Quân sự", "An ninh"] 
+  },
+  { 
+    "id": "toaB9", 
+    "name": "Tòa B9 (Y tế)",
+    "tags": ["Trung tâm Y tế", "Y tế", "Sức khỏe", "Phòng khám"] 
+  },
+  { 
+    "id": "toaD4", 
+    "name": "Tòa D4",
+    "tags": ["Trường Ngoại ngữ", "SoFL", "Tiếng Anh", "Ngoại ngữ khác"] 
+  },
+  { 
+    "id": "toaVuonhoa", 
+    "name": "Vườn hoa trung tâm",
+    "tags": ["Không gian xanh", "Cảnh quan", "Sự kiện ngoài trời"] 
+  },
+  { 
+    "id": "toaD7", 
+    "name": "Tòa D7",
+    "tags": ["Viện Sư phạm Kỹ thuật", "ISTE", "Đào tạo giáo viên kỹ thuật"] 
+  }
+]
