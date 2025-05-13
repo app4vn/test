@@ -1,1 +1,46 @@
+{
+  "name": "Tòa C1 (Nhà Hành chính)",
+  "detail": "Tòa nhà C1 là trung tâm hành chính của Đại học Bách Khoa Hà Nội, nơi đặt văn phòng của Ban Giám hiệu và nhiều phòng ban chức năng quan trọng, phục vụ công tác quản lý, đào tạo và hỗ trợ sinh viên.<br>Bạn có thể sử dụng HTML tại đây để định dạng thêm.",
+  "imageUrl": "https://placehold.co/600x400/E81123/white?text=Toa+C1",
+  "openingHours": [
+    "Thứ 2 - Thứ 6: 07:30 - 11:30, 13:30 - 17:00"
+  ],
+  "phone": "(024) 3869 4242",
+  "website": "hust.edu.vn",
+  "services": [
+    "Giải quyết thủ tục hành chính",
+    "Hỗ trợ sinh viên và cán bộ"
+  ],
+  "detailImages": [],
+  "units": [
+    { 
+      "unitName": "Văn phòng Trường (Ban Giám hiệu)", 
+      "type": "Văn phòng Trung tâm", 
+      "officeLocation": "Tầng 2", 
+      "phone": "", "email": "", "website": "", 
+      "description": "Nơi làm việc của Ban Giám hiệu và các bộ phận tham mưu, giúp việc." 
+    },
+    { 
+      "unitName": "Phòng Đào tạo", 
+      "type": "Phòng Ban Chức năng", 
+      "officeLocation": "P.201-204, Tầng 2", 
+      "phone": "(024) 3869 2008", "email": "dt@hust.edu.vn", "website": "ctt-daotao.hust.edu.vn", 
+      "description": "Quản lý công tác tuyển sinh, chương trình đào tạo, và kết quả học tập của sinh viên." 
+    },
+    { 
+      "unitName": "Phòng Công tác Sinh viên", 
+      "type": "Phòng Ban Chức năng", 
+      "officeLocation": "P.101-103, Tầng 1", 
+      "phone": "(024) 3869 2838", "email": "ctsv@hust.edu.vn", "website": "ctsv.hust.edu.vn", 
+      "description": "Hỗ trợ sinh viên về các chế độ chính sách, học bổng, hoạt động ngoại khóa và đời sống." 
+    },
+    { 
+      "unitName": "Phòng Hợp tác Đối ngoại", 
+      "type": "Phòng Ban Chức năng", 
+      "officeLocation": "Tầng 2", 
+      "phone": "(024) 3869 2003", "email": "icd@hust.edu.vn", "website": "htqt.hust.edu.vn", 
+      "description": "Phụ trách các hoạt động hợp tác quốc tế, trao đổi sinh viên và giảng viên."
+    }
+  ]
+}
 
